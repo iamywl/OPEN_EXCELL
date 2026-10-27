@@ -350,10 +350,10 @@
   function saveCurrentWorkbook() {
     const grid = sheets[activeSheet];
     const csvContent = gridToCsv(grid);
-    const bytes = Array.from(new TextEncoder().encode(csvContent));
     vscode.postMessage({
-      type: 'gridcraft:save',
-      bytes: bytes
+      type: 'gridcraft:saveWorkbook',
+      sheets: sheets,
+      csvText: csvContent
     });
     markDirty(false);
   }
@@ -556,6 +556,35 @@
   window.addEventListener('message', (event) => {
     const message = event.data;
     switch (message.type) {
+      case 'gridcraft:openWorkbook':
+        currentFileName = message.filename;
+        docTitleEl.textContent = message.filename;
+        sheets = message.sheets || { Sheet1: createInitialGrid(35, 16) };
+        const sheetNames = message.sheetNames || Object.keys(sheets);
+        
+        // Rebuild Sheet tabs
+        sheetTabsEl.innerHTML = '';
+        sheetNames.forEach(name => {
+          const tab = document.createElement('button');
+          tab.className = `sheet-tab ${name === sheetNames[0] ? 'active' : ''}`;
+          tab.textContent = name;
+          tab.setAttribute('data-sheet', name);
+          tab.addEventListener('click', () => switchSheet(name));
+          sheetTabsEl.appendChild(tab);
+        });
+        sheetTabsEl.appendChild(btnAddSheet);
+        activeSheet = sheetNames[0] || 'Sheet1';
+        renderGrid();
+        break;
+
+      case 'gridcraft:openText':
+        currentFileName = message.filename;
+        docTitleEl.textContent = message.filename;
+        sheets = { Sheet1: parseDelimited(message.text, message.delimiter || ',') };
+        activeSheet = 'Sheet1';
+        renderGrid();
+        break;
+
       case 'gridcraft:open':
         loadFileBytes(message.filename, message.bytes);
         break;

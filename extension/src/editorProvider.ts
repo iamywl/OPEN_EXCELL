@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as XLSX from 'xlsx';
 
 /**
  * Custom Document for Open Excel
@@ -85,11 +86,58 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
       try {
         const fileData = await vscode.workspace.fs.readFile(document.uri);
         const filename = path.basename(document.uri.fsPath);
-        webviewPanel.webview.postMessage({
-          type: 'gridcraft:open',
-          filename: filename,
-          bytes: Array.from(fileData),
-        });
+        const lower = filename.toLowerCase();
+
+        if (lower.endsWith('.csv') || lower.endsWith('.tsv')) {
+          const text = new TextDecoder('utf-8').decode(fileData);
+          webviewPanel.webview.postMessage({
+            type: 'gridcraft:openText',
+            filename,
+            text,
+            delimiter: lower.endsWith('.tsv') ? '\t' : ',',
+          });
+        } else {
+          // Parse binary XLSX/XLS workbook
+          const wb = XLSX.read(fileData, { type: 'buffer', cellFormula: true });
+          const sheetsData: Record<string, any[][]> = {};
+
+          for (const sheetName of wb.SheetNames) {
+            const ws = wb.Sheets[sheetName];
+            const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:M30');
+            const maxR = Math.max(range.e.r + 1, 30);
+            const maxC = Math.max(range.e.c + 1, 15);
+
+            const grid: any[][] = [];
+            for (let r = 0; r < maxR; r++) {
+              const row: any[] = [];
+              for (let c = 0; c < maxC; c++) {
+                const cellAddr = XLSX.utils.encode_cell({ r, c });
+                const cell = ws[cellAddr];
+                let raw = '';
+                let val = '';
+                if (cell) {
+                  if (cell.f) {
+                    raw = '=' + cell.f;
+                    val = cell.v !== undefined ? cell.v : cell.w || '';
+                  } else {
+                    raw = cell.v !== undefined ? String(cell.v) : '';
+                    val = raw;
+                  }
+                }
+                row.push({ raw, val, bold: false, italic: false, align: 'left' });
+              }
+              grid.push(row);
+            }
+            sheetsData[sheetName] = grid;
+          }
+
+          webviewPanel.webview.postMessage({
+            type: 'gridcraft:openWorkbook',
+            filename,
+            sheets: sheetsData,
+            sheetNames: wb.SheetNames,
+          });
+        }
       } catch (err: any) {
         vscode.window.showErrorMessage(`Failed to read spreadsheet file: ${err?.message || err}`);
       }
@@ -111,14 +159,59 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
           });
           break;
 
-        case 'gridcraft:save':
+        case 'gridcraft:saveWorkbook':
           try {
-            if (message.bytes) {
-              const uint8 = new Uint8Array(message.bytes);
+            const filename = path.basename(document.uri.fsPath);
+            const lower = filename.toLowerCase();
+
+            if (lower.endsWith('.csv') || lower.endsWith('.tsv')) {
+              const csvText = message.csvText;
+              const uint8 = new TextEncoder().encode(csvText);
               await vscode.workspace.fs.writeFile(document.uri, uint8);
-              document.setDirty(false);
-              vscode.window.setStatusBarMessage(`Spreadsheet saved: ${path.basename(document.uri.fsPath)}`, 3000);
+            } else {
+              // Build standard binary XLSX
+              const wb = XLSX.utils.book_new();
+              const sheets = message.sheets || {};
+
+              for (const [sheetName, grid] of Object.entries(sheets)) {
+                const ws: XLSX.WorkSheet = {};
+                let maxR = 0;
+                let maxC = 0;
+
+                (grid as any[][]).forEach((row, r) => {
+                  row.forEach((cell, c) => {
+                    if (cell && (cell.raw || cell.val)) {
+                      maxR = Math.max(maxR, r);
+                      maxC = Math.max(maxC, c);
+                      const addr = XLSX.utils.encode_cell({ r, c });
+                      if (String(cell.raw).startsWith('=')) {
+                        ws[addr] = {
+                          t: typeof cell.val === 'number' ? 'n' : 's',
+                          f: String(cell.raw).substring(1),
+                          v: cell.val,
+                        };
+                      } else {
+                        const num = Number(cell.raw);
+                        if (!isNaN(num) && cell.raw !== '') {
+                          ws[addr] = { t: 'n', v: num };
+                        } else {
+                          ws[addr] = { t: 's', v: String(cell.raw) };
+                        }
+                      }
+                    }
+                  });
+                });
+
+                ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: Math.max(maxR, 5), c: Math.max(maxC, 5) } });
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+              }
+
+              const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+              await vscode.workspace.fs.writeFile(document.uri, buffer);
             }
+
+            document.setDirty(false);
+            vscode.window.setStatusBarMessage(`Spreadsheet saved: ${filename}`, 3000);
           } catch (err: any) {
             vscode.window.showErrorMessage(`Failed to save spreadsheet: ${err?.message || err}`);
           }
