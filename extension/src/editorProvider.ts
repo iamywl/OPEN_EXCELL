@@ -213,7 +213,7 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
   <header class="ribbon-bar">
     <div class="ribbon-tab-bar">
       <div class="ribbon-brand">
-        <span class="brand-badge">GRID</span>
+        <span class="brand-badge">GLASS EXCEL</span>
         <span class="file-name" id="doc-title">Workbook.xlsx</span>
       </div>
       <div class="ribbon-actions">

@@ -1,43 +1,69 @@
-/* Open Excel - VS Code Webview Stylesheet */
+/* OPEN_EXCELL - Ultra Glassmorphism Theme (Liquid Glass & Frosted Glass) */
+
 :root {
-  --bg-color: #ffffff;
-  --text-color: #212529;
-  --border-color: #e0e0e0;
-  --header-bg: #f8f9fa;
-  --header-text: #495057;
-  --ribbon-bg: #107c41; /* Excel green */
-  --ribbon-text: #ffffff;
-  --ribbon-btn-bg: #0b5a2f;
-  --ribbon-btn-hover: #159c53;
-  --selection-border: #107c41;
-  --selection-bg: rgba(16, 124, 65, 0.12);
-  --cell-hover: #f1f8f3;
-  --formula-bar-bg: #ffffff;
-  --tab-active-bg: #ffffff;
-  --tab-inactive-bg: #f0f0f0;
-  --status-bar-bg: #107c41;
-  --status-bar-text: #ffffff;
+  /* Ambient Glass Canvas Colors */
+  --glass-bg-mesh: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                   radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.10) 0px, transparent 50%),
+                   radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+                   #f8fafc;
+  --glass-base: rgba(255, 255, 255, 0.72);
+  --glass-card: rgba(255, 255, 255, 0.60);
+  --glass-card-hover: rgba(255, 255, 255, 0.85);
+  --glass-card-active: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-border-subtle: rgba(226, 232, 240, 0.7);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --glass-shadow-lg: 0 12px 40px 0 rgba(16, 124, 65, 0.12);
+  --glass-inner-glow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.8);
+  
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  
+  --emerald-glass: rgba(16, 185, 129, 0.85);
+  --emerald-glass-hover: rgba(16, 185, 129, 1);
+  --emerald-glass-glow: 0 0 16px rgba(16, 185, 129, 0.35);
+  --emerald-pill-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.9));
+  
+  --grid-border: rgba(226, 232, 240, 0.6);
+  --grid-header-bg: rgba(248, 250, 252, 0.75);
+  --grid-cell-bg: rgba(255, 255, 255, 0.55);
+  --grid-cell-hover: rgba(241, 245, 249, 0.85);
+  --selection-border: #10b981;
+  --selection-bg: rgba(16, 185, 129, 0.12);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-color: #1e1e1e;
-    --text-color: #d4d4d4;
-    --border-color: #333333;
-    --header-bg: #252526;
-    --header-text: #cccccc;
-    --ribbon-bg: #107c41;
-    --ribbon-text: #ffffff;
-    --ribbon-btn-bg: #0d6334;
-    --ribbon-btn-hover: #159c53;
-    --selection-border: #2bb063;
-    --selection-bg: rgba(43, 176, 99, 0.2);
-    --cell-hover: #2a2d2e;
-    --formula-bar-bg: #252526;
-    --tab-active-bg: #1e1e1e;
-    --tab-inactive-bg: #2d2d2d;
-    --status-bar-bg: #107c41;
-    --status-bar-text: #ffffff;
+    --glass-bg-mesh: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.18) 0px, transparent 50%),
+                     radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                     radial-gradient(at 50% 100%, rgba(14, 165, 233, 0.12) 0px, transparent 50%),
+                     #0b0f17;
+    --glass-base: rgba(15, 23, 42, 0.75);
+    --glass-card: rgba(30, 41, 59, 0.60);
+    --glass-card-hover: rgba(51, 65, 85, 0.75);
+    --glass-card-active: rgba(71, 85, 105, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-border-subtle: rgba(255, 255, 255, 0.06);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+    --glass-shadow-lg: 0 12px 40px 0 rgba(0, 0, 0, 0.65);
+    --glass-inner-glow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
+    
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-subtle: #64748b;
+    
+    --emerald-glass: rgba(16, 185, 129, 0.9);
+    --emerald-glass-hover: rgba(52, 211, 153, 1);
+    --emerald-glass-glow: 0 0 20px rgba(16, 185, 129, 0.45);
+    --emerald-pill-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.85), rgba(5, 150, 105, 0.85));
+    
+    --grid-border: rgba(51, 65, 85, 0.45);
+    --grid-header-bg: rgba(15, 23, 42, 0.85);
+    --grid-cell-bg: rgba(30, 41, 59, 0.45);
+    --grid-cell-hover: rgba(51, 65, 85, 0.65);
+    --selection-border: #34d399;
+    --selection-bg: rgba(16, 185, 129, 0.22);
   }
 }
 
@@ -48,55 +74,65 @@
 }
 
 body.gridcraft-root {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Nanum Gothic", "SF Pro Display", "Segoe UI", Roboto, sans-serif;
   font-size: 13px;
-  color: var(--text-color);
-  background-color: var(--bg-color);
+  color: var(--text-main);
+  background: var(--glass-bg-mesh);
+  background-attachment: fixed;
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
   user-select: none;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Ribbon Header */
+/* Glass Ribbon Container */
 .ribbon-bar {
-  background-color: var(--header-bg);
-  border-bottom: 1px solid var(--border-color);
+  background: var(--glass-base);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  z-index: 20;
 }
 
+/* Glass Top Header */
 .ribbon-tab-bar {
-  background-color: var(--ribbon-bg);
-  color: var(--ribbon-text);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 14px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--glass-border-subtle);
 }
 
 .ribbon-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .brand-badge {
-  background: #ffffff;
-  color: var(--ribbon-bg);
+  background: var(--emerald-pill-bg);
+  color: #ffffff;
   font-weight: 800;
   font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 3px;
-  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.8px;
+  box-shadow: var(--emerald-glass-glow), var(--glass-inner-glow);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
 }
 
 .file-name {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 13px;
-  opacity: 0.95;
+  color: var(--text-main);
+  letter-spacing: 0.2px;
 }
 
 .ribbon-actions {
@@ -108,137 +144,165 @@ body.gridcraft-root {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: 4px;
+  padding: 5px 14px;
+  border-radius: 8px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  border: none;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--glass-border);
+  outline: none;
 }
 
 .ribbon-action-btn.primary {
-  background: var(--ribbon-btn-bg);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--emerald-pill-bg);
+  color: #ffffff;
+  box-shadow: var(--emerald-glass-glow), var(--glass-inner-glow);
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 .ribbon-action-btn.primary:hover {
-  background: var(--ribbon-btn-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.55), var(--glass-inner-glow);
+  filter: brightness(1.08);
 }
 
 .ribbon-action-btn.secondary {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: var(--glass-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-main);
+  box-shadow: var(--glass-inner-glow);
 }
 
 .ribbon-action-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--glass-card-hover);
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* Ribbon Tools */
+/* Glass Ribbon Tools Island */
 .ribbon-tools {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  background-color: var(--header-bg);
-  border-bottom: 1px solid var(--border-color);
+  gap: 6px;
+  padding: 6px 16px;
+  background: transparent;
+  border-bottom: 1px solid var(--glass-border-subtle);
 }
 
 .tool-group {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
+  background: var(--glass-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow);
 }
 
 .tool-btn {
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 3px;
-  color: var(--text-color);
-  padding: 4px 8px;
+  border-radius: 6px;
+  color: var(--text-main);
+  padding: 4px 9px;
   cursor: pointer;
   font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.15s ease;
 }
 
 .tool-btn:hover {
-  background-color: var(--border-color);
+  background: var(--glass-card-hover);
+  border-color: var(--glass-border);
 }
 
 .tool-btn.active {
-  background-color: var(--selection-bg);
+  background: var(--selection-bg);
   border-color: var(--selection-border);
   color: var(--selection-border);
+  font-weight: 700;
 }
 
 .tool-btn.text-btn {
-  font-weight: 500;
-  padding: 4px 10px;
+  font-weight: 600;
+  padding: 4px 11px;
 }
 
 .tool-divider {
   width: 1px;
-  height: 20px;
-  background-color: var(--border-color);
-  margin: 0 6px;
+  height: 22px;
+  background: var(--glass-border-subtle);
+  margin: 0 4px;
 }
 
-/* Formula Bar */
+/* Glass Formula Bar Capsule */
 .formula-bar {
   display: flex;
   align-items: center;
-  background-color: var(--formula-bar-bg);
-  border-bottom: 1px solid var(--border-color);
-  padding: 4px 8px;
+  background: transparent;
+  padding: 6px 16px;
   gap: 8px;
 }
 
 .cell-name-box {
-  width: 54px;
-  padding: 3px 6px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-color);
-  color: var(--text-color);
-  font-weight: 600;
+  width: 58px;
+  padding: 5px 8px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--emerald-glass-hover);
+  font-weight: 700;
   text-align: center;
-  border-radius: 2px;
+  border-radius: 8px;
+  box-shadow: var(--glass-inner-glow);
+  letter-spacing: 0.5px;
 }
 
 .formula-fx {
   font-style: italic;
-  font-weight: bold;
-  color: #888;
-  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-muted);
+  font-size: 14px;
   user-select: none;
+  padding: 0 2px;
 }
 
 .formula-input {
   flex: 1;
-  border: 1px solid var(--border-color);
-  background: var(--bg-color);
-  color: var(--text-color);
-  padding: 4px 8px;
-  border-radius: 2px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--text-main);
+  padding: 6px 12px;
+  border-radius: 8px;
   font-family: inherit;
   font-size: 13px;
   outline: none;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04), var(--glass-inner-glow);
+  transition: all 0.2s ease;
 }
 
 .formula-input:focus {
   border-color: var(--selection-border);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25), var(--glass-inner-glow);
+  background: var(--glass-card-hover);
 }
 
-/* Spreadsheet Grid */
+/* Glass Spreadsheet Grid */
 .grid-container {
   flex: 1;
   position: relative;
   overflow: hidden;
-  background-color: var(--bg-color);
+  background: transparent;
 }
 
 .grid-scroll {
@@ -248,27 +312,31 @@ body.gridcraft-root {
 }
 
 .grid-table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   table-layout: fixed;
   font-size: 12px;
-  background-color: var(--bg-color);
+  background: transparent;
 }
 
 .grid-table th, .grid-table td {
-  border: 1px solid var(--border-color);
-  height: 24px;
-  padding: 2px 6px;
+  border-right: 1px solid var(--grid-border);
+  border-bottom: 1px solid var(--grid-border);
+  height: 26px;
+  padding: 3px 8px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .corner-header {
-  width: 44px;
-  min-width: 44px;
-  background-color: var(--header-bg);
-  border-right: 2px solid var(--border-color);
-  border-bottom: 2px solid var(--border-color);
+  width: 48px;
+  min-width: 48px;
+  background: var(--grid-header-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid var(--grid-border);
+  border-bottom: 1px solid var(--grid-border);
   position: sticky;
   top: 0;
   left: 0;
@@ -276,23 +344,28 @@ body.gridcraft-root {
 }
 
 .col-header {
-  min-width: 90px;
-  width: 100px;
-  background-color: var(--header-bg);
-  color: var(--header-text);
-  font-weight: 600;
+  min-width: 95px;
+  width: 105px;
+  background: var(--grid-header-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--text-muted);
+  font-weight: 700;
   text-align: center;
   position: sticky;
   top: 0;
   z-index: 5;
+  letter-spacing: 0.3px;
 }
 
 .row-header {
-  width: 44px;
-  min-width: 44px;
-  background-color: var(--header-bg);
-  color: var(--header-text);
-  font-weight: 600;
+  width: 48px;
+  min-width: 48px;
+  background: var(--grid-header-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--text-muted);
+  font-weight: 700;
   text-align: center;
   position: sticky;
   left: 0;
@@ -300,87 +373,109 @@ body.gridcraft-root {
 }
 
 .grid-cell {
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  background: var(--grid-cell-bg);
+  color: var(--text-main);
   cursor: cell;
   outline: none;
+  transition: background 0.12s ease;
 }
 
 .grid-cell:hover {
-  background-color: var(--cell-hover);
+  background: var(--grid-cell-hover);
 }
 
 .grid-cell.selected {
   outline: 2px solid var(--selection-border) !important;
   outline-offset: -2px;
-  background-color: var(--selection-bg);
+  background: var(--selection-bg) !important;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
   z-index: 2;
+  font-weight: 600;
 }
 
-.grid-cell.editing {
-  background-color: var(--bg-color);
-  cursor: text;
-  outline: 2px solid var(--selection-border) !important;
-  outline-offset: -2px;
-  z-index: 3;
-}
-
-/* Footer & Sheet Tabs */
+/* Glass Dock Footer & Tabs */
 .sheet-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--header-bg);
-  border-top: 1px solid var(--border-color);
-  padding: 0 10px;
-  height: 30px;
+  background: var(--glass-base);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border-top: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  padding: 0 16px;
+  height: 36px;
   flex-shrink: 0;
+  z-index: 20;
 }
 
 .sheet-tabs {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   height: 100%;
 }
 
 .sheet-tab {
-  background-color: var(--tab-inactive-bg);
-  border: 1px solid var(--border-color);
+  background: var(--glass-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
   border-bottom: none;
-  color: var(--text-color);
-  padding: 4px 12px;
-  border-radius: 4px 4px 0 0;
+  color: var(--text-muted);
+  padding: 5px 14px;
+  border-radius: 8px 8px 0 0;
   font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  height: 26px;
-  margin-top: 4px;
+  height: 28px;
+  margin-top: 8px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--glass-inner-glow);
+}
+
+.sheet-tab:hover {
+  background: var(--glass-card-hover);
+  color: var(--text-main);
 }
 
 .sheet-tab.active {
-  background-color: var(--tab-active-bg);
+  background: var(--glass-card-active);
+  color: var(--emerald-glass-hover);
   border-top: 2px solid var(--selection-border);
-  font-weight: 600;
+  box-shadow: 0 -2px 12px rgba(16, 185, 129, 0.15), var(--glass-inner-glow);
 }
 
 .sheet-add-btn {
-  background: transparent;
-  border: none;
-  font-size: 16px;
-  color: var(--text-color);
+  background: var(--glass-card);
+  border: 1px solid var(--glass-border);
+  font-size: 15px;
+  color: var(--text-muted);
   cursor: pointer;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-top: 8px;
+  margin-left: 4px;
+  transition: all 0.15s ease;
 }
 
 .sheet-add-btn:hover {
-  background: var(--border-color);
+  background: var(--glass-card-hover);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .status-stats {
   display: flex;
-  gap: 14px;
-  font-size: 11px;
-  color: var(--header-text);
+  gap: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+  background: var(--glass-card);
+  backdrop-filter: blur(12px);
+  padding: 3px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--glass-inner-glow);
 }

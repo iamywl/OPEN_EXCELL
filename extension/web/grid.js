@@ -463,7 +463,7 @@
     rows.sort((a, b) => {
       const valA = a[col] ? a[col].val : '';
       const valB = b[col] ? b[col].val : '';
-      return String(valA).localeCompare(String(valB), undefined, { numeric: true });
+      return String(valA).localeCompare(String(valB), 'ko-KR', { numeric: true });
     });
     sheets[activeSheet] = [header, ...rows];
     markDirty(true);
@@ -478,7 +478,7 @@
     rows.sort((a, b) => {
       const valA = a[col] ? a[col].val : '';
       const valB = b[col] ? b[col].val : '';
-      return String(valB).localeCompare(String(valA), undefined, { numeric: true });
+      return String(valB).localeCompare(String(valA), 'ko-KR', { numeric: true });
     });
     sheets[activeSheet] = [header, ...rows];
     markDirty(true);
