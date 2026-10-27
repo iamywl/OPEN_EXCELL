@@ -3,6 +3,7 @@
   "displayName": "Open Excel - GridCraft Spreadsheet",
   "description": "High-performance Excel & Spreadsheet Editor for VS Code and Native Desktop (macOS & Windows). Clean-room, Rust-powered parity with Microsoft Excel.",
   "version": "1.0.0",
+  "license": "MIT",
   "publisher": "iamywl",
   "repository": {
     "type": "git",
