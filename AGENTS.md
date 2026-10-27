@@ -4,23 +4,41 @@
 > **REMOTE REPO**: https://github.com/iamywl/OPEN_EXCELL.git  
 > **PLATFORMS**: macOS (Apple Silicon & Intel), Windows 10/11 (x64, ARM64), Linux  
 > **DESIGN PHILOSOPHY**: **Ultra Glassmorphism / Frosted Liquid Glass** (Ambient mesh gradient, 28px backdrop blur, emerald neon accents, floating glass islands & pills)  
-> **CORE MODES**:
-> 1. **VS Code Extension**: Custom Editor (`gridcraft.excelEditor`) supporting `.xlsx`, `.xls`, `.csv`, `.tsv` with full interactive editing, formula engine, and auto-save.
-> 2. **Native Standalone App**: Rust + egui / winit ultra-fast native desktop application for macOS and Windows.
+
+---
+
+## ⭐️ [핵심 기본 철학] 엑셀 기능의 VS Code 완전 내장 (Excel Parity in VS Code)
+**"단순한 파일 뷰어나 간이 테이블이 아니라, Microsoft Excel의 핵심 기능 일체(풀 리본 툴바, 셀 포맷, 테두리, 수식 엔진, 행/열 리사이즈, 셀 병합, 필터/정렬, 다중 시트, 단축키, 바이너리 저장 등)를 VS Code 익스텐션 내에 온전히 구현하여 완벽한 엑셀 작업 환경을 제공하는 것이 본 프로젝트의 최우선 불변 철학이다."**
+
+1. **완전한 엑셀 사용자 경험**:
+   - 상단 리본바 탭 체계 (Home, Insert, Formulas, Data, View) 완비
+   - 폰트(글꼴 패밀리, 크기), 글꼴색/배경색(컬러 피커), 테두리(Borders), 정렬(수직/수평), 텍스트 줄바꿈(Wrap Text), 셀 병합(Merge & Center)
+   - 숫자 서식 드롭다운 (일반, 숫자, 통화, 회계, 백분율, 날짜, 지수)
+   - 엑셀 표준 수식 바 (Name Box + fx 수식 입력 + 셀 양방향 반응형 바인딩)
+   - 스프레드시트 그리드 인터랙션:
+     - 마우스 드래그 다중 셀 범위 선택 (Range Selection: `A1:C5`)
+     - 셀 우하단 자동 채우기 핸들 (Auto Fill Drag Handle)
+     - 행 높이 / 열 너비 마우스 드래그 리사이징
+     - 컨텍스트 메뉴 (행/열 삽입, 삭제, 복사, 잘라내기, 붙여넣기)
+     - 엑셀 표준 단축키: `Ctrl/Cmd+C`, `Ctrl/Cmd+V`, `Ctrl/Cmd+X`, `Ctrl/Cmd+Z`, `Ctrl/Cmd+Y`, `Ctrl/Cmd+B`, `Ctrl/Cmd+I`, `Ctrl/Cmd+U`, `Delete`
+   - 표준 바이너리 `.xlsx` (OpenXML) 무손실 읽기 및 쓰기 저장
+
+2. **크로스 플랫폼 네이티브 연동**:
+   - macOS(Metal) 및 Windows(DirectX) 초고속 네이티브 데스크톱 앱과의 원클릭 양방향 연동
 
 ---
 
 ## Loop Engineering Protocol (루프 엔지니어링 원칙)
 모든 개발 및 배포는 다음의 5단계 검증 루프를 통과해야 하며 100% 완수를 목표로 함:
-1. **[Requirement & Plan Loop]**: 사용자의 요구사항(윈도우/맥 호환, VSC 익스텐션, 네이티브 앱, 글래스모피즘 디자인, QA 캡처, 깃허브 연동)을 분석하고 반영.
+1. **[Requirement & Plan Loop]**: 사용자의 요구사항(기본철학: 엑셀 기능을 VSC에 완전 내장, 윈도우/맥 호환, 글래스모피즘 디자인, QA 캡처, 깃허브 연동)을 분석하고 반영.
 2. **[Implementation Loop]**:
-   - 글래스모피즘 디자인 철학 적용 (`extension/web/grid.css`: Frosted Liquid Glass, Neon Emerald Glow, Capsule Inputs).
-   - VS Code Extension 구조 완비 (`package.json`, TypeScript CustomEditor, Webview Bridge, VSIX 패키징).
+   - 엑셀 완전 기능(Full Excel Feature Parity) VS Code Extension 내장 구현 (`extension/web/grid.js`, `grid.css`, `index.html`, `editorProvider.ts`).
+   - 글래스모피즘 디자인 철학 적용 (Frosted Liquid Glass, Neon Emerald Glow, Capsule Inputs).
    - 네이티브 데스크톱 빌드 및 실행 체계 완비 (macOS Metal 122 FPS 검증 완료, Windows 호환).
    - 크로스 플랫폼 파일 입출력 및 인코딩/경로 호환성 보장.
 3. **[Testing & Build Loop]**:
    - Rust crates 537개 핵심 단위/통합 테스트 100% 통과.
-   - VS Code Extension 빌드 및 VSIX 패키징 (`open-excell-1.0.0.vsix` 300KB) 완료 및 VS Code 실제 설치 검증 (`code --install-extension`).
+   - VS Code Extension 빌드 및 VSIX 패키징 (`open-excell-1.0.0.vsix`) 완료 및 VS Code 실제 설치 검증 (`code --install-extension`).
 4. **[Proof of QA & Capture Loop]**:
    - macOS 실제 네이티브 윈도우 실행 후 라이브 스크린샷 캡처 (`docs/images/qa_proof_macos_native_live.png`).
    - 오프스크린/스냅샷 렌더링 4종 스냅샷 증명.

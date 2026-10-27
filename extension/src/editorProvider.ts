@@ -302,13 +302,21 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
   <link rel="stylesheet" href="${styleUri}">
 </head>
 <body class="gridcraft-root">
-  <!-- Ribbon Toolbar -->
+  <!-- Ribbon Toolbar Container -->
   <header class="ribbon-bar">
+    <!-- Top Branding & Tabs Bar -->
     <div class="ribbon-tab-bar">
       <div class="ribbon-brand">
-        <span class="brand-badge">GLASS EXCEL</span>
+        <span class="brand-badge">EXCEL</span>
         <span class="file-name" id="doc-title">Workbook.xlsx</span>
       </div>
+      <nav class="ribbon-nav-tabs">
+        <button class="nav-tab active" data-tab="tab-home">Home</button>
+        <button class="nav-tab" data-tab="tab-insert">Insert</button>
+        <button class="nav-tab" data-tab="tab-formulas">Formulas</button>
+        <button class="nav-tab" data-tab="tab-data">Data</button>
+        <button class="nav-tab" data-tab="tab-view">View</button>
+      </nav>
       <div class="ribbon-actions">
         <button id="btn-save" class="ribbon-action-btn primary" title="Save file (Ctrl+S / Cmd+S)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
@@ -321,29 +329,208 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
       </div>
     </div>
     
-    <div class="ribbon-tools">
-      <div class="tool-group">
-        <button id="tool-bold" class="tool-btn" title="Bold (Ctrl+B)"><b>B</b></button>
-        <button id="tool-italic" class="tool-btn" title="Italic (Ctrl+I)"><i>I</i></button>
-        <button id="tool-align-left" class="tool-btn" title="Align Left">⇤</button>
-        <button id="tool-align-center" class="tool-btn" title="Align Center">≡</button>
-        <button id="tool-align-right" class="tool-btn" title="Align Right">⇥</button>
+    <!-- Tab Contents Panels -->
+    <div class="ribbon-panels">
+      <!-- HOME PANEL -->
+      <div class="tab-panel active" id="tab-home">
+        <!-- Clipboard -->
+        <div class="tool-section">
+          <div class="tool-group">
+            <button id="tool-cut" class="tool-btn icon-btn" title="Cut (Ctrl+X)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg></button>
+            <button id="tool-copy" class="tool-btn icon-btn" title="Copy (Ctrl+C)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            <button id="tool-paste" class="tool-btn icon-btn" title="Paste (Ctrl+V)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></button>
+          </div>
+          <span class="section-label">Clipboard</span>
+        </div>
+        <div class="tool-divider"></div>
+
+        <!-- Font Controls -->
+        <div class="tool-section">
+          <div class="tool-group flex-wrap">
+            <select id="select-font-family" class="tool-select font-family" title="Font Family">
+              <option value="Arial">Arial</option>
+              <option value="Calibri" selected>Calibri</option>
+              <option value="Segoe UI">Segoe UI</option>
+              <option value="Apple SD Gothic Neo">맑은 고딕 / Apple SD</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="monospace">Consolas / Monospace</option>
+            </select>
+            <select id="select-font-size" class="tool-select font-size" title="Font Size">
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11" selected>11</option>
+              <option value="12">12</option>
+              <option value="14">14</option>
+              <option value="16">16</option>
+              <option value="18">18</option>
+              <option value="24">24</option>
+            </select>
+            <div class="button-row">
+              <button id="tool-bold" class="tool-btn" title="Bold (Ctrl+B)"><b>B</b></button>
+              <button id="tool-italic" class="tool-btn" title="Italic (Ctrl+I)"><i>I</i></button>
+              <button id="tool-underline" class="tool-btn" title="Underline (Ctrl+U)"><u>U</u></button>
+              <button id="tool-strike" class="tool-btn" title="Strikethrough"><s>S</s></button>
+              <label class="color-picker-label" title="Font Color">
+                <span class="color-indicator">A</span>
+                <input type="color" id="tool-font-color" value="#000000">
+              </label>
+              <label class="color-picker-label" title="Fill Color">
+                <span class="fill-indicator">🪣</span>
+                <input type="color" id="tool-fill-color" value="#ffffff">
+              </label>
+              <select id="select-borders" class="tool-select border-select" title="Borders">
+                <option value="none">Border: None</option>
+                <option value="all">All Borders</option>
+                <option value="outside">Outside Border</option>
+                <option value="thick">Thick Box</option>
+                <option value="bottom">Bottom Border</option>
+              </select>
+            </div>
+          </div>
+          <span class="section-label">Font</span>
+        </div>
+        <div class="tool-divider"></div>
+
+        <!-- Alignment Controls -->
+        <div class="tool-section">
+          <div class="tool-group flex-wrap">
+            <div class="button-row">
+              <button id="tool-align-top" class="tool-btn" title="Top Align">⇪</button>
+              <button id="tool-align-middle" class="tool-btn" title="Middle Align">⬌</button>
+              <button id="tool-align-bottom" class="tool-btn" title="Bottom Align">⇩</button>
+              <div class="tool-mini-divider"></div>
+              <button id="tool-align-left" class="tool-btn" title="Align Left">⇤</button>
+              <button id="tool-align-center" class="tool-btn" title="Align Center">≡</button>
+              <button id="tool-align-right" class="tool-btn" title="Align Right">⇥</button>
+            </div>
+            <div class="button-row">
+              <button id="tool-wrap-text" class="tool-btn text-btn" title="Wrap Text">Wrap Text</button>
+              <button id="tool-merge-cells" class="tool-btn text-btn" title="Merge & Center">Merge & Center</button>
+            </div>
+          </div>
+          <span class="section-label">Alignment</span>
+        </div>
+        <div class="tool-divider"></div>
+
+        <!-- Number Format Controls -->
+        <div class="tool-section">
+          <div class="tool-group flex-wrap">
+            <select id="select-num-fmt" class="tool-select format-select" title="Number Format">
+              <option value="General">General</option>
+              <option value="Number">Number (1,234.00)</option>
+              <option value="Currency">Currency ($ / ₩)</option>
+              <option value="Accounting">Accounting</option>
+              <option value="ShortDate">Short Date (YYYY-MM-DD)</option>
+              <option value="Percentage">Percentage (%)</option>
+            </select>
+            <div class="button-row">
+              <button id="tool-fmt-comma" class="tool-btn" title="Comma Style">,</button>
+              <button id="tool-fmt-percent" class="tool-btn" title="Percent Style">%</button>
+              <button id="tool-fmt-currency" class="tool-btn" title="Currency Style">₩</button>
+              <button id="tool-fmt-inc-dec" class="tool-btn" title="Increase Decimal">.00</button>
+              <button id="tool-fmt-dec-dec" class="tool-btn" title="Decrease Decimal">.0</button>
+            </div>
+          </div>
+          <span class="section-label">Number</span>
+        </div>
+        <div class="tool-divider"></div>
+
+        <!-- Cells & Editing -->
+        <div class="tool-section">
+          <div class="tool-group">
+            <button id="tool-add-row" class="tool-btn text-btn">+ Row</button>
+            <button id="tool-del-row" class="tool-btn text-btn">- Row</button>
+            <button id="tool-add-col" class="tool-btn text-btn">+ Col</button>
+            <button id="tool-del-col" class="tool-btn text-btn">- Col</button>
+            <button id="tool-clear" class="tool-btn text-btn">Clear</button>
+          </div>
+          <span class="section-label">Cells</span>
+        </div>
       </div>
-      <div class="tool-divider"></div>
-      <div class="tool-group">
-        <button id="tool-add-row" class="tool-btn text-btn">+ Row</button>
-        <button id="tool-add-col" class="tool-btn text-btn">+ Col</button>
-        <button id="tool-sort-asc" class="tool-btn text-btn">A→Z</button>
-        <button id="tool-sort-desc" class="tool-btn text-btn">Z→A</button>
+
+      <!-- INSERT PANEL -->
+      <div class="tab-panel" id="tab-insert">
+        <div class="tool-section">
+          <div class="tool-group">
+            <button id="insert-chart-column" class="tool-btn text-btn">📊 Column Chart</button>
+            <button id="insert-chart-pie" class="tool-btn text-btn">🥧 Pie Chart</button>
+            <button id="insert-chart-line" class="tool-btn text-btn">📈 Line Chart</button>
+          </div>
+          <span class="section-label">Charts</span>
+        </div>
+        <div class="tool-divider"></div>
+        <div class="tool-section">
+          <div class="tool-group">
+            <button id="insert-fn-sum" class="tool-btn text-btn">=SUM()</button>
+            <button id="insert-fn-avg" class="tool-btn text-btn">=AVERAGE()</button>
+            <button id="insert-fn-count" class="tool-btn text-btn">=COUNT()</button>
+            <button id="insert-fn-if" class="tool-btn text-btn">=IF()</button>
+          </div>
+          <span class="section-label">Functions</span>
+        </div>
       </div>
-      <div class="tool-divider"></div>
-      <div class="tool-group">
-        <button id="tool-export-csv" class="tool-btn text-btn">Export CSV</button>
+
+      <!-- FORMULAS PANEL -->
+      <div class="tab-panel" id="tab-formulas">
+        <div class="tool-section">
+          <div class="tool-group">
+            <button id="fn-autosum" class="tool-btn text-btn font-bold">∑ AutoSum</button>
+            <button id="fn-average" class="tool-btn text-btn">Average</button>
+            <button id="fn-count" class="tool-btn text-btn">Count Numbers</button>
+            <button id="fn-max" class="tool-btn text-btn">Max</button>
+            <button id="fn-min" class="tool-btn text-btn">Min</button>
+          </div>
+          <span class="section-label">AutoSum</span>
+        </div>
+        <div class="tool-divider"></div>
+        <div class="tool-section">
+          <div class="tool-group">
+            <button id="fn-vlookup" class="tool-btn text-btn">VLOOKUP</button>
+            <button id="fn-xlookup" class="tool-btn text-btn">XLOOKUP</button>
+            <button id="fn-concat" class="tool-btn text-btn">CONCAT</button>
+            <button id="fn-today" class="tool-btn text-btn">TODAY</button>
+          </div>
+          <span class="section-label">Library</span>
+        </div>
+      </div>
+
+      <!-- DATA PANEL -->
+      <div class="tab-panel" id="tab-data">
+        <div class="tool-section">
+          <div class="tool-group">
+            <button id="tool-sort-asc" class="tool-btn text-btn">Sort A→Z</button>
+            <button id="tool-sort-desc" class="tool-btn text-btn">Sort Z→A</button>
+            <button id="tool-toggle-filter" class="tool-btn text-btn">Filter</button>
+          </div>
+          <span class="section-label">Sort & Filter</span>
+        </div>
+        <div class="tool-divider"></div>
+        <div class="tool-section">
+          <div class="tool-group">
+            <button id="tool-export-csv" class="tool-btn text-btn">Export CSV</button>
+          </div>
+          <span class="section-label">Export</span>
+        </div>
+      </div>
+
+      <!-- VIEW PANEL -->
+      <div class="tab-panel" id="tab-view">
+        <div class="tool-section">
+          <div class="tool-group">
+            <label class="view-checkbox-label">
+              <input type="checkbox" id="check-gridlines" checked> Gridlines
+            </label>
+            <label class="view-checkbox-label">
+              <input type="checkbox" id="check-formula-bar" checked> Formula Bar
+            </label>
+          </div>
+          <span class="section-label">Show</span>
+        </div>
       </div>
     </div>
 
-    <!-- Formula Bar -->
-    <div class="formula-bar">
+    <!-- Excel Formula Bar -->
+    <div class="formula-bar" id="formula-bar-container">
       <div class="cell-name-box" id="cell-name">A1</div>
       <div class="formula-fx">fx</div>
       <input type="text" class="formula-input" id="formula-input" placeholder="Enter value or formula like =SUM(A1:A5)" spellcheck="false" autocomplete="off" />
@@ -358,6 +545,15 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
         <tbody id="grid-tbody"></tbody>
       </table>
     </div>
+
+    <!-- Floating Chart Container (Optional popup) -->
+    <div class="chart-overlay hidden" id="chart-overlay">
+      <div class="chart-header">
+        <span class="chart-title" id="chart-title">Data Chart</span>
+        <button id="btn-close-chart" class="chart-close">✕</button>
+      </div>
+      <canvas id="chart-canvas" width="480" height="260"></canvas>
+    </div>
   </main>
 
   <!-- Sheet Tabs & Status Bar -->
@@ -370,8 +566,24 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
       <span id="stat-count">Count: 0</span>
       <span id="stat-sum">Sum: 0</span>
       <span id="stat-avg">Average: 0</span>
+      <span id="stat-min">Min: 0</span>
+      <span id="stat-max">Max: 0</span>
     </div>
   </footer>
+
+  <!-- Context Menu -->
+  <div class="context-menu hidden" id="context-menu">
+    <div class="context-item" data-action="cut">Cut (Ctrl+X)</div>
+    <div class="context-item" data-action="copy">Copy (Ctrl+C)</div>
+    <div class="context-item" data-action="paste">Paste (Ctrl+V)</div>
+    <div class="context-divider"></div>
+    <div class="context-item" data-action="insert-row">Insert Row</div>
+    <div class="context-item" data-action="delete-row">Delete Row</div>
+    <div class="context-item" data-action="insert-col">Insert Column</div>
+    <div class="context-item" data-action="delete-col">Delete Column</div>
+    <div class="context-divider"></div>
+    <div class="context-item" data-action="clear">Clear Contents</div>
+  </div>
 
   <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
