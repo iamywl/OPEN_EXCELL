@@ -1,0 +1,386 @@
+/* Open Excel - VS Code Webview Stylesheet */
+:root {
+  --bg-color: #ffffff;
+  --text-color: #212529;
+  --border-color: #e0e0e0;
+  --header-bg: #f8f9fa;
+  --header-text: #495057;
+  --ribbon-bg: #107c41; /* Excel green */
+  --ribbon-text: #ffffff;
+  --ribbon-btn-bg: #0b5a2f;
+  --ribbon-btn-hover: #159c53;
+  --selection-border: #107c41;
+  --selection-bg: rgba(16, 124, 65, 0.12);
+  --cell-hover: #f1f8f3;
+  --formula-bar-bg: #ffffff;
+  --tab-active-bg: #ffffff;
+  --tab-inactive-bg: #f0f0f0;
+  --status-bar-bg: #107c41;
+  --status-bar-text: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #1e1e1e;
+    --text-color: #d4d4d4;
+    --border-color: #333333;
+    --header-bg: #252526;
+    --header-text: #cccccc;
+    --ribbon-bg: #107c41;
+    --ribbon-text: #ffffff;
+    --ribbon-btn-bg: #0d6334;
+    --ribbon-btn-hover: #159c53;
+    --selection-border: #2bb063;
+    --selection-bg: rgba(43, 176, 99, 0.2);
+    --cell-hover: #2a2d2e;
+    --formula-bar-bg: #252526;
+    --tab-active-bg: #1e1e1e;
+    --tab-inactive-bg: #2d2d2d;
+    --status-bar-bg: #107c41;
+    --status-bar-text: #ffffff;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body.gridcraft-root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 13px;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Ribbon Header */
+.ribbon-bar {
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.ribbon-tab-bar {
+  background-color: var(--ribbon-bg);
+  color: var(--ribbon-text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 14px;
+}
+
+.ribbon-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-badge {
+  background: #ffffff;
+  color: var(--ribbon-bg);
+  font-weight: 800;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+}
+
+.file-name {
+  font-weight: 600;
+  font-size: 13px;
+  opacity: 0.95;
+}
+
+.ribbon-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ribbon-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.ribbon-action-btn.primary {
+  background: var(--ribbon-btn-bg);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ribbon-action-btn.primary:hover {
+  background: var(--ribbon-btn-hover);
+}
+
+.ribbon-action-btn.secondary {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.ribbon-action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Ribbon Tools */
+.ribbon-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tool-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tool-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--text-color);
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-btn:hover {
+  background-color: var(--border-color);
+}
+
+.tool-btn.active {
+  background-color: var(--selection-bg);
+  border-color: var(--selection-border);
+  color: var(--selection-border);
+}
+
+.tool-btn.text-btn {
+  font-weight: 500;
+  padding: 4px 10px;
+}
+
+.tool-divider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--border-color);
+  margin: 0 6px;
+}
+
+/* Formula Bar */
+.formula-bar {
+  display: flex;
+  align-items: center;
+  background-color: var(--formula-bar-bg);
+  border-bottom: 1px solid var(--border-color);
+  padding: 4px 8px;
+  gap: 8px;
+}
+
+.cell-name-box {
+  width: 54px;
+  padding: 3px 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-weight: 600;
+  text-align: center;
+  border-radius: 2px;
+}
+
+.formula-fx {
+  font-style: italic;
+  font-weight: bold;
+  color: #888;
+  font-size: 13px;
+  user-select: none;
+}
+
+.formula-input {
+  flex: 1;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  padding: 4px 8px;
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.formula-input:focus {
+  border-color: var(--selection-border);
+}
+
+/* Spreadsheet Grid */
+.grid-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg-color);
+}
+
+.grid-scroll {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.grid-table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 12px;
+  background-color: var(--bg-color);
+}
+
+.grid-table th, .grid-table td {
+  border: 1px solid var(--border-color);
+  height: 24px;
+  padding: 2px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.corner-header {
+  width: 44px;
+  min-width: 44px;
+  background-color: var(--header-bg);
+  border-right: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 10;
+}
+
+.col-header {
+  min-width: 90px;
+  width: 100px;
+  background-color: var(--header-bg);
+  color: var(--header-text);
+  font-weight: 600;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.row-header {
+  width: 44px;
+  min-width: 44px;
+  background-color: var(--header-bg);
+  color: var(--header-text);
+  font-weight: 600;
+  text-align: center;
+  position: sticky;
+  left: 0;
+  z-index: 4;
+}
+
+.grid-cell {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  cursor: cell;
+  outline: none;
+}
+
+.grid-cell:hover {
+  background-color: var(--cell-hover);
+}
+
+.grid-cell.selected {
+  outline: 2px solid var(--selection-border) !important;
+  outline-offset: -2px;
+  background-color: var(--selection-bg);
+  z-index: 2;
+}
+
+.grid-cell.editing {
+  background-color: var(--bg-color);
+  cursor: text;
+  outline: 2px solid var(--selection-border) !important;
+  outline-offset: -2px;
+  z-index: 3;
+}
+
+/* Footer & Sheet Tabs */
+.sheet-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--header-bg);
+  border-top: 1px solid var(--border-color);
+  padding: 0 10px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+.sheet-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 100%;
+}
+
+.sheet-tab {
+  background-color: var(--tab-inactive-bg);
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  color: var(--text-color);
+  padding: 4px 12px;
+  border-radius: 4px 4px 0 0;
+  font-size: 12px;
+  cursor: pointer;
+  height: 26px;
+  margin-top: 4px;
+}
+
+.sheet-tab.active {
+  background-color: var(--tab-active-bg);
+  border-top: 2px solid var(--selection-border);
+  font-weight: 600;
+}
+
+.sheet-add-btn {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.sheet-add-btn:hover {
+  background: var(--border-color);
+}
+
+.status-stats {
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  color: var(--header-text);
+  font-variant-numeric: tabular-nums;
+}

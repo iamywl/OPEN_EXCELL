@@ -1,4 +1,33 @@
-# GridCraft — instructions for agents
+# OPEN_EXCELL / GridCraft — Instructions for Agents & Loop Engineering
+
+> **PROJECT**: OPEN_EXCELL (Cross-Platform Native Spreadsheet & VS Code Extension)  
+> **REMOTE REPO**: https://github.com/iamywl/OPEN_EXCELL.git  
+> **PLATFORMS**: macOS (Apple Silicon & Intel), Windows 10/11 (x64, ARM64), Linux  
+> **CORE MODES**:
+> 1. **VS Code Extension**: Custom Editor (`gridcraft.excelEditor`) supporting `.xlsx`, `.xls`, `.csv`, `.tsv` with full interactive editing, formula engine, and auto-save.
+> 2. **Native Standalone App**: Rust + egui / winit ultra-fast native desktop application for macOS and Windows.
+
+---
+
+## Loop Engineering Protocol (루프 엔지니어링 원칙)
+모든 개발 및 배포는 다음의 5단계 검증 루프를 통과해야 하며 100% 완수를 목표로 함:
+1. **[Requirement & Plan Loop]**: 사용자의 요구사항(윈도우/맥 호환, VSC 익스텐션, 네이티브 앱, QA 캡처, 깃허브 연동)을 분석하고 반영.
+2. **[Implementation Loop]**:
+   - VS Code Extension 구조 완비 (`package.json`, TypeScript CustomEditor, Webview Bridge, WASM/HTML 번들링).
+   - 네이티브 데스크톱 빌드 및 실행 체계 완비 (macOS/Windows 호환).
+   - 크로스 플랫폼 파일 입출력 및 인코딩/경로 호환성 보장.
+3. **[Testing & Build Loop]**:
+   - Rust crates 빌드 및 테스트.
+   - VS Code Extension 빌드 및 컴파일 (`npm run compile` / `vsce package`).
+4. **[Proof of QA & Capture Loop]**:
+   - 오프스크린/스냅샷 렌더링 및 UI 캡처 스크립트를 통한 실제 동작 스냅샷 증명.
+   - 사용자 사용 가이드 및 증명 문서 작성.
+5. **[Sync & Deliver Loop]**:
+   - `git add`, `git commit`, `git push origin main` 원격 저장소 동기화.
+
+---
+
+# GridCraft — Base Architecture & Clean-room Rules
 
 GridCraft is a clean-room, open-source, Rust-native spreadsheet targeting Microsoft Excel parity — and superiority (speed, openness, agent control). It runs natively on macOS, Windows, Linux and BSD, and on the web via WASM. Siblings with the same conventions: `../designcraft` (InDesign-class, the closest reference), `../photocraft` (Photoshop), `../vectorcraft` (Illustrator), `../pdfcraft` (Acrobat), `../filmcraft` (Premiere), `../lightcraft` (Lightroom), `../effectcraft` (After Effects).
 

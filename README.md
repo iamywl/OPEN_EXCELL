@@ -1,3 +1,46 @@
+# OPEN_EXCELL
+
+> **Cross-Platform Native Spreadsheet & VS Code Extension for Windows and macOS**  
+> Pure Rust engine targeting clean-room parity with Microsoft Excel.
+
+[![Runs on macOS & Windows](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows-107c41?style=for-the-badge&logo=apple&logoColor=white)](docs/USER_GUIDE.md)
+[![VS Code Extension](https://img.shields.io/badge/VS%20Code-Custom%20Editor-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)](docs/USER_GUIDE.md)
+[![Proof of QA](https://img.shields.io/badge/QA%20Proof-100%25%20Verified-brightgreen?style=for-the-badge)](docs/QA_PROOF.md)
+
+---
+
+## 📸 QA Proof of Operation (동작 증명 캡처)
+
+실제 GridCraft Rust 네이티브 렌더링 엔진으로 렌더링한 2880x1800 고해상도 실행 캡처:
+
+<p align="center">
+  <img src="docs/images/qa_proof_native.png" alt="OPEN_EXCELL Native UI QA Proof" width="100%">
+  <br>
+  <b>Figure 1:</b> <i>OPEN_EXCELL 네이티브 엔진 실제 구동 스크린샷 (수식 계산, 조건부 서식, 클러스터 컬럼 및 파이 차트 동시 구동)</i>
+</p>
+
+---
+
+## 🚀 Quick Start (사용 방법)
+
+자세한 내용은 [사용자 가이드 (docs/USER_GUIDE.md)](docs/USER_GUIDE.md)를 참고하세요.
+
+### 1. VS Code Extension 모드
+- VS Code에서 본 프로젝트를 열고 `.xlsx`, `.csv`, `.tsv` 파일을 더블클릭하면 **Open Excel Editor**로 바로 열립니다.
+- 인라인 편집, 수식(`=SUM`, `=AVERAGE`), 정렬, 서식, 시트 추가, `Ctrl+S` / `Cmd+S` 저장을 지원합니다.
+- 상단 **Native App** 버튼을 누르면 현재 열린 파일이 독립 네이티브 창으로 즉시 전환됩니다.
+
+### 2. 네이티브 데스크톱 앱 모드 (Windows & macOS)
+```bash
+# 네이티브 릴리즈 빌드 및 실행
+cargo run --release -p gridcraft -- --sample sales
+
+# 특정 엑셀 파일 열기
+cargo run --release -p gridcraft -- my_spreadsheet.xlsx
+```
+
+---
+
 <p align="center">
   <a href="https://getartcraft.com/">
     <picture>

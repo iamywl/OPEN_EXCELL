@@ -1,0 +1,120 @@
+{
+  "name": "open-excell",
+  "displayName": "Open Excel - GridCraft Spreadsheet",
+  "description": "High-performance Excel & Spreadsheet Editor for VS Code and Native Desktop (macOS & Windows). Clean-room, Rust-powered parity with Microsoft Excel.",
+  "version": "1.0.0",
+  "publisher": "iamywl",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iamywl/OPEN_EXCELL.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Visualization",
+    "Data Science"
+  ],
+  "keywords": [
+    "excel",
+    "xlsx",
+    "xls",
+    "csv",
+    "tsv",
+    "spreadsheet",
+    "gridcraft",
+    "viewer",
+    "editor"
+  ],
+  "main": "./dist/extension.js",
+  "browser": "./dist/extension.js",
+  "activationEvents": [
+    "onCustomEditor:gridcraft.excelEditor"
+  ],
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "gridcraft.excelEditor",
+        "displayName": "Open Excel Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.xlsx"
+          },
+          {
+            "filenamePattern": "*.xls"
+          },
+          {
+            "filenamePattern": "*.csv"
+          },
+          {
+            "filenamePattern": "*.tsv"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "openExcell.openInNative",
+        "title": "Open in Native GridCraft App",
+        "category": "Open Excel"
+      },
+      {
+        "command": "openExcell.newWorkbook",
+        "title": "Create New Spreadsheet",
+        "category": "Open Excel"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "openExcell.openInNative",
+          "when": "activeCustomEditorId == 'gridcraft.excelEditor'",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "openExcell.openInNative",
+          "when": "resourceExtname == .xlsx || resourceExtname == .xls || resourceExtname == .csv",
+          "group": "7_modification"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Open Excel",
+      "properties": {
+        "openExcell.nativeBinaryPath": {
+          "type": "string",
+          "default": "",
+          "description": "Custom path to the GridCraft native executable (optional)."
+        },
+        "openExcell.theme": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "excel-green",
+            "dark",
+            "light"
+          ],
+          "default": "auto",
+          "description": "Theme used by the spreadsheet editor."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "build:native": "cargo build --release -p gridcraft",
+    "snapshot:qa": "cargo run -p gridcraft-ui-egui --example snapshot -- --sample sales qa_snapshot.png"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.3"
+  }
+}
