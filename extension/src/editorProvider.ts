@@ -584,20 +584,50 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
     </div>
 
     <!-- Excel Formula Bar -->
-    <div class="formula-bar" id="formula-bar-container">
+    <div class="formula-bar" id="formula-bar-container" style="position: relative;">
       <div class="cell-name-box" id="cell-name">A1</div>
       <div class="formula-fx">fx</div>
-      <input type="text" class="formula-input" id="formula-input" placeholder="Enter value or formula like =SUM(A1:A5)" spellcheck="false" autocomplete="off" />
+      <input type="text" class="formula-input" id="formula-input" placeholder="Enter value or formula like =SUM(A1:A5), =VLOOKUP(...), =IF(...)" spellcheck="false" autocomplete="off" />
+      <div class="formula-autocomplete-box hidden" id="formula-autocomplete"></div>
+      <div class="formula-signature-hint hidden" id="formula-signature-hint"></div>
     </div>
   </header>
 
   <!-- Spreadsheet Canvas Area -->
   <main class="grid-container" id="grid-container">
+    <!-- Floating Find & Replace Bar -->
+    <div class="find-replace-bar hidden" id="find-replace-bar">
+      <input type="text" class="find-input" id="find-input" placeholder="Find in sheet..." />
+      <input type="text" class="find-input" id="replace-input" placeholder="Replace with..." style="display:none;" />
+      <button class="find-replace-btn" id="btn-toggle-replace" title="Toggle Replace">⇄</button>
+      <button class="find-replace-btn" id="btn-find-prev" title="Previous match">▲</button>
+      <button class="find-replace-btn" id="btn-find-next" title="Next match">▼</button>
+      <button class="find-replace-btn" id="btn-replace-one" style="display:none;">Replace</button>
+      <button class="find-replace-btn" id="btn-replace-all" style="display:none;">All</button>
+      <span class="find-match-badge" id="find-match-badge">0 / 0</span>
+      <button class="find-close-btn" id="btn-close-find">✕</button>
+    </div>
+
     <div class="grid-scroll" id="grid-scroll">
       <table class="grid-table" id="grid-table">
         <thead id="grid-thead"></thead>
         <tbody id="grid-tbody"></tbody>
       </table>
+    </div>
+
+    <!-- Floating AutoFilter Dropdown Menu -->
+    <div class="filter-dropdown-menu hidden" id="filter-dropdown-menu">
+      <div style="font-weight: 700; font-size: 11px; margin-bottom: 4px;" id="filter-col-title">Filter Column</div>
+      <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+        <button class="filter-action-btn" id="btn-filter-sort-asc" style="flex:1;">Sort A→Z</button>
+        <button class="filter-action-btn" id="btn-filter-sort-desc" style="flex:1;">Sort Z→A</button>
+      </div>
+      <input type="text" class="filter-search-input" id="filter-search-input" placeholder="Search values..." />
+      <div class="filter-items-list" id="filter-items-list"></div>
+      <div class="filter-actions">
+        <button class="filter-action-btn clear" id="btn-filter-clear">Clear Filter</button>
+        <button class="filter-action-btn apply" id="btn-filter-apply">Apply</button>
+      </div>
     </div>
 
     <!-- Floating Chart Container (Optional popup) -->
@@ -624,6 +654,14 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
       <span id="stat-max">Max: 0</span>
     </div>
   </footer>
+
+  <!-- Sheet Tab Context Menu -->
+  <div class="context-menu hidden" id="sheet-tab-context-menu">
+    <div class="context-item" data-action="rename-sheet">Rename Sheet</div>
+    <div class="context-item" data-action="duplicate-sheet">Duplicate Sheet</div>
+    <div class="context-divider"></div>
+    <div class="context-item" data-action="delete-sheet">Delete Sheet</div>
+  </div>
 
   <!-- Context Menu -->
   <div class="context-menu hidden" id="context-menu">

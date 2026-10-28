@@ -31,6 +31,15 @@
   let fillTargetR = -1;
   let fillTargetC = -1;
 
+  // Advanced Enterprise State
+  let isFilterActive = false;
+  let activeFilters = {}; // { [colIdx]: Set of allowed strings }
+  let currentFilterCol = -1;
+  let findMatches = [];
+  let findMatchIndex = -1;
+  let isReplaceMode = false;
+  let targetContextMenuSheet = '';
+
   // DOM Elements
   const docTitleEl = document.getElementById('doc-title');
   const btnSave = document.getElementById('btn-save');
@@ -43,6 +52,31 @@
   const sheetTabsEl = document.getElementById('sheet-tabs');
   const btnAddSheet = document.getElementById('btn-add-sheet');
   const contextMenu = document.getElementById('context-menu');
+
+  // Advanced Enterprise Controls
+  const findReplaceBar = document.getElementById('find-replace-bar');
+  const findInput = document.getElementById('find-input');
+  const replaceInput = document.getElementById('replace-input');
+  const btnToggleReplace = document.getElementById('btn-toggle-replace');
+  const btnFindPrev = document.getElementById('btn-find-prev');
+  const btnFindNext = document.getElementById('btn-find-next');
+  const btnReplaceOne = document.getElementById('btn-replace-one');
+  const btnReplaceAll = document.getElementById('btn-replace-all');
+  const findMatchBadge = document.getElementById('find-match-badge');
+  const btnCloseFind = document.getElementById('btn-close-find');
+
+  const filterDropdownMenu = document.getElementById('filter-dropdown-menu');
+  const filterColTitle = document.getElementById('filter-col-title');
+  const filterSearchInput = document.getElementById('filter-search-input');
+  const filterItemsList = document.getElementById('filter-items-list');
+  const btnFilterApply = document.getElementById('btn-filter-apply');
+  const btnFilterClear = document.getElementById('btn-filter-clear');
+  const btnFilterSortAsc = document.getElementById('btn-filter-sort-asc');
+  const btnFilterSortDesc = document.getElementById('btn-filter-sort-desc');
+
+  const formulaAutocomplete = document.getElementById('formula-autocomplete');
+  const formulaSignatureHint = document.getElementById('formula-signature-hint');
+  const sheetTabContextMenu = document.getElementById('sheet-tab-context-menu');
 
   // Stats
   const statCount = document.getElementById('stat-count');
@@ -179,99 +213,540 @@
     };
   }
 
-  // Formula Evaluator
-  function evaluateFormula(input, grid) {
-    if (!input || !input.startsWith('=')) {
-      return input;
-    }
-    const expr = input.substring(1).trim();
+  // --- FUNCTION CATALOG & METADATA ---
+  const FUNCTION_CATALOG = [
+    { name: 'SUM', sig: 'SUM(number1, [number2], ...)', desc: 'Adds all the numbers in a range of cells.' },
+    { name: 'AVERAGE', sig: 'AVERAGE(number1, [number2], ...)', desc: 'Returns the average (arithmetic mean) of arguments.' },
+    { name: 'COUNT', sig: 'COUNT(value1, [value2], ...)', desc: 'Counts the number of cells that contain numbers.' },
+    { name: 'COUNTA', sig: 'COUNTA(value1, [value2], ...)', desc: 'Counts the number of cells that are not empty.' },
+    { name: 'COUNTBLANK', sig: 'COUNTBLANK(range)', desc: 'Counts the number of empty cells in a range.' },
+    { name: 'MAX', sig: 'MAX(number1, [number2], ...)', desc: 'Returns the largest value in a set of values.' },
+    { name: 'MIN', sig: 'MIN(number1, [number2], ...)', desc: 'Returns the smallest value in a set of values.' },
+    { name: 'MEDIAN', sig: 'MEDIAN(number1, [number2], ...)', desc: 'Returns the median of the given numbers.' },
+    { name: 'PRODUCT', sig: 'PRODUCT(number1, [number2], ...)', desc: 'Multiplies all the numbers given as arguments.' },
+    { name: 'IF', sig: 'IF(logical_test, value_if_true, [value_if_false])', desc: 'Returns one value if TRUE and another if FALSE.' },
+    { name: 'IFS', sig: 'IFS(logical_test1, value1, [logical_test2, value2], ...)', desc: 'Checks whether one or more conditions are met and returns corresponding value.' },
+    { name: 'IFERROR', sig: 'IFERROR(value, value_if_error)', desc: 'Returns value_if_error if expression is an error, otherwise returns value.' },
+    { name: 'AND', sig: 'AND(logical1, [logical2], ...)', desc: 'Returns TRUE if all its arguments are TRUE.' },
+    { name: 'OR', sig: 'OR(logical1, [logical2], ...)', desc: 'Returns TRUE if any argument is TRUE.' },
+    { name: 'NOT', sig: 'NOT(logical)', desc: 'Reverses the logic of its argument.' },
+    { name: 'ISBLANK', sig: 'ISBLANK(value)', desc: 'Returns TRUE if the value is blank.' },
+    { name: 'ISNUMBER', sig: 'ISNUMBER(value)', desc: 'Returns TRUE if the value is a number.' },
+    { name: 'ISTEXT', sig: 'ISTEXT(value)', desc: 'Returns TRUE if the value is text.' },
+    { name: 'VLOOKUP', sig: 'VLOOKUP(lookup_value, table_array, col_index, [range_lookup])', desc: 'Looks for a value in the leftmost column of a table and returns a value in the same row.' },
+    { name: 'HLOOKUP', sig: 'HLOOKUP(lookup_value, table_array, row_index, [range_lookup])', desc: 'Looks for a value in the top row of a table and returns a value in the same column.' },
+    { name: 'XLOOKUP', sig: 'XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode])', desc: 'Searches a range/array and returns the matching item from a second range/array.' },
+    { name: 'INDEX', sig: 'INDEX(array, row_num, [col_num])', desc: 'Returns a value or reference of the cell at the intersection of row and column.' },
+    { name: 'MATCH', sig: 'MATCH(lookup_value, lookup_array, [match_type])', desc: 'Returns the relative position of an item in an array that matches a specified value.' },
+    { name: 'CHOOSE', sig: 'CHOOSE(index_num, value1, [value2], ...)', desc: 'Chooses a value from a list of values based on an index number.' },
+    { name: 'SUMIF', sig: 'SUMIF(range, criteria, [sum_range])', desc: 'Adds the cells specified by a given condition or criteria.' },
+    { name: 'COUNTIF', sig: 'COUNTIF(range, criteria)', desc: 'Counts the number of cells within a range that meet the given criteria.' },
+    { name: 'AVERAGEIF', sig: 'AVERAGEIF(range, criteria, [average_range])', desc: 'Finds average for the cells specified by a given condition or criteria.' },
+    { name: 'ROUND', sig: 'ROUND(number, num_digits)', desc: 'Rounds a number to a specified number of digits.' },
+    { name: 'ROUNDUP', sig: 'ROUNDUP(number, num_digits)', desc: 'Rounds a number up, away from zero.' },
+    { name: 'ROUNDDOWN', sig: 'ROUNDDOWN(number, num_digits)', desc: 'Rounds a number down, toward zero.' },
+    { name: 'ABS', sig: 'ABS(number)', desc: 'Returns the absolute value of a number.' },
+    { name: 'MOD', sig: 'MOD(number, divisor)', desc: 'Returns the remainder after number is divided by divisor.' },
+    { name: 'POWER', sig: 'POWER(number, power)', desc: 'Returns the result of a number raised to a power.' },
+    { name: 'SQRT', sig: 'SQRT(number)', desc: 'Returns a positive square root.' },
+    { name: 'INT', sig: 'INT(number)', desc: 'Rounds a number down to the nearest integer.' },
+    { name: 'CONCAT', sig: 'CONCAT(text1, [text2], ...)', desc: 'Combines the text from multiple ranges and/or strings.' },
+    { name: 'CONCATENATE', sig: 'CONCATENATE(text1, [text2], ...)', desc: 'Joins several text items into one text item.' },
+    { name: 'LEFT', sig: 'LEFT(text, [num_chars])', desc: 'Returns the specified number of characters from the start of a text string.' },
+    { name: 'RIGHT', sig: 'RIGHT(text, [num_chars])', desc: 'Returns the specified number of characters from the end of a text string.' },
+    { name: 'MID', sig: 'MID(text, start_num, num_chars)', desc: 'Returns a specific number of characters from a text string.' },
+    { name: 'LEN', sig: 'LEN(text)', desc: 'Returns the number of characters in a text string.' },
+    { name: 'TRIM', sig: 'TRIM(text)', desc: 'Removes all spaces from text except for single spaces between words.' },
+    { name: 'UPPER', sig: 'UPPER(text)', desc: 'Converts text to uppercase.' },
+    { name: 'LOWER', sig: 'LOWER(text)', desc: 'Converts all letters in a text string to lowercase.' },
+    { name: 'PROPER', sig: 'PROPER(text)', desc: 'Capitalizes the first letter in each word of a text value.' },
+    { name: 'TODAY', sig: 'TODAY()', desc: 'Returns the current date formatted as YYYY-MM-DD.' },
+    { name: 'NOW', sig: 'NOW()', desc: 'Returns the current date and time.' },
+    { name: 'DATE', sig: 'DATE(year, month, day)', desc: 'Returns the serial number that represents a particular date.' },
+    { name: 'YEAR', sig: 'YEAR(serial_number)', desc: 'Returns the year of a date.' },
+    { name: 'MONTH', sig: 'MONTH(serial_number)', desc: 'Returns the month of a date.' },
+    { name: 'DAY', sig: 'DAY(serial_number)', desc: 'Returns the day of the month.' }
+  ];
 
-    // SUM
-    const sumMatch = expr.match(/^SUM\(([A-Z0-9:,\s]+)\)$/i);
-    if (sumMatch) {
-      const nums = getRangeValues(sumMatch[1], grid);
-      return nums.reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
-    }
+  // Split arguments at depth 0
+  function splitArguments(argString) {
+    const args = [];
+    let current = '';
+    let depth = 0;
+    let inQuote = false;
 
-    // AVERAGE
-    const avgMatch = expr.match(/^AVERAGE\(([A-Z0-9:,\s]+)\)$/i);
-    if (avgMatch) {
-      const nums = getRangeValues(avgMatch[1], grid);
-      if (nums.length === 0) return 0;
-      const sum = nums.reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
-      return Math.round((sum / nums.length) * 100) / 100;
-    }
-
-    // COUNT
-    const countMatch = expr.match(/^COUNT\(([A-Z0-9:,\s]+)\)$/i);
-    if (countMatch) {
-      const nums = getRangeValues(countMatch[1], grid);
-      return nums.filter(v => v !== '' && !isNaN(Number(v))).length;
-    }
-
-    // MAX
-    const maxMatch = expr.match(/^MAX\(([A-Z0-9:,\s]+)\)$/i);
-    if (maxMatch) {
-      const nums = getRangeValues(maxMatch[1], grid).map(Number).filter(n => !isNaN(n));
-      return nums.length ? Math.max(...nums) : 0;
-    }
-
-    // MIN
-    const minMatch = expr.match(/^MIN\(([A-Z0-9:,\s]+)\)$/i);
-    if (minMatch) {
-      const nums = getRangeValues(minMatch[1], grid).map(Number).filter(n => !isNaN(n));
-      return nums.length ? Math.min(...nums) : 0;
-    }
-
-    // Direct cell reference like =A1
-    const cellCoords = parseCellCoords(expr);
-    if (cellCoords && grid[cellCoords.r] && grid[cellCoords.r][cellCoords.c]) {
-      return grid[cellCoords.r][cellCoords.c].val;
-    }
-
-    // Simple arithmetic like =B2*C2 or =A1+B1
-    const arithMatch = expr.match(/^([A-Z]+\d+)\s*([\+\-\*\/])\s*([A-Z]+\d+)$/i);
-    if (arithMatch) {
-      const c1 = parseCellCoords(arithMatch[1]);
-      const op = arithMatch[2];
-      const c2 = parseCellCoords(arithMatch[3]);
-      if (c1 && c2 && grid[c1.r] && grid[c1.r][c1.c] && grid[c2.r] && grid[c2.r][c2.c]) {
-        const v1 = parseFloat(grid[c1.r][c1.c].val) || 0;
-        const v2 = parseFloat(grid[c2.r][c2.c].val) || 0;
-        if (op === '+') return v1 + v2;
-        if (op === '-') return v1 - v2;
-        if (op === '*') return v1 * v2;
-        if (op === '/') return v2 !== 0 ? v1 / v2 : '#DIV/0!';
+    for (let i = 0; i < argString.length; i++) {
+      const ch = argString[i];
+      if (ch === '"') {
+        inQuote = !inQuote;
+        current += ch;
+      } else if (ch === '(' && !inQuote) {
+        depth++;
+        current += ch;
+      } else if (ch === ')' && !inQuote) {
+        depth--;
+        current += ch;
+      } else if (ch === ',' && depth === 0 && !inQuote) {
+        args.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
       }
     }
+    if (current.trim()) {
+      args.push(current.trim());
+    }
+    return args;
+  }
 
-    // IF formula like =IF(D2>=100000, "우수", "일반")
-    const ifMatch = expr.match(/^IF\(\s*([A-Z]+\d+)\s*(>=|<=|>|<|==|=)\s*(\d+|"[^"]*")\s*,\s*("[^"]*"|\d+)\s*,\s*("[^"]*"|\d+)\s*\)$/i);
-    if (ifMatch) {
-      const c1 = parseCellCoords(ifMatch[1]);
-      const op = ifMatch[2];
-      const targetVal = ifMatch[3].replace(/"/g, '');
-      const trueVal = ifMatch[4].replace(/"/g, '');
-      const falseVal = ifMatch[5].replace(/"/g, '');
-      if (c1 && grid[c1.r] && grid[c1.r][c1.c]) {
-        const cellVal = grid[c1.r][c1.c].val;
-        const numCell = parseFloat(cellVal);
-        const numTarget = parseFloat(targetVal);
-        let condition = false;
-        if (!isNaN(numCell) && !isNaN(numTarget)) {
-          if (op === '>=') condition = numCell >= numTarget;
-          else if (op === '<=') condition = numCell <= numTarget;
-          else if (op === '>') condition = numCell > numTarget;
-          else if (op === '<') condition = numCell < numTarget;
-          else if (op === '=' || op === '==') condition = numCell === numTarget;
-        } else {
-          condition = String(cellVal) === String(targetVal);
+  function matchesCriteria(val, criteria) {
+    if (criteria === undefined || criteria === null) return false;
+    const critStr = String(criteria).trim();
+    const match = critStr.match(/^(>=|<=|<>|!=|>|<|=)(.*)$/);
+    if (match) {
+      const op = match[1];
+      const target = match[2].trim();
+      const numVal = parseFloat(val);
+      const numTarget = parseFloat(target);
+      if (!isNaN(numVal) && !isNaN(numTarget)) {
+        if (op === '>') return numVal > numTarget;
+        if (op === '<') return numVal < numTarget;
+        if (op === '>=') return numVal >= numTarget;
+        if (op === '<=') return numVal <= numTarget;
+        if (op === '=' || op === '==') return numVal === numTarget;
+        if (op === '<>' || op === '!=') return numVal !== numTarget;
+      }
+      const strVal = String(val).toLowerCase();
+      const strTarget = target.toLowerCase();
+      if (op === '=' || op === '==') return strVal === strTarget;
+      if (op === '<>' || op === '!=') return strVal !== strTarget;
+    }
+    return String(val).toLowerCase() === critStr.toLowerCase();
+  }
+
+  function get2DRange(rangeStr, grid) {
+    const parts = rangeStr.split(':');
+    if (parts.length === 1) {
+      const c = parseCellCoords(parts[0].trim());
+      if (c && grid[c.r] && grid[c.r][c.c]) {
+        return [[grid[c.r][c.c].val]];
+      }
+      return [[]];
+    }
+    const start = parseCellCoords(parts[0].trim());
+    const end = parseCellCoords(parts[1].trim());
+    if (!start || !end) return [[]];
+
+    const minR = Math.min(start.r, end.r);
+    const maxR = Math.max(start.r, end.r);
+    const minC = Math.min(start.c, end.c);
+    const maxC = Math.max(start.c, end.c);
+
+    const table = [];
+    for (let r = minR; r <= maxR; r++) {
+      const row = [];
+      for (let c = minC; c <= maxC; c++) {
+        row.push(grid[r] && grid[r][c] ? grid[r][c].val : '');
+      }
+      table.push(row);
+    }
+    return table;
+  }
+
+  // --- RECURSIVE ENTERPRISE FORMULA EVALUATOR ---
+  function evaluateFormula(input, grid, depth = 0) {
+    if (input === null || input === undefined) return '';
+    if (depth > 25) return '#RECURSION!';
+
+    let expr = String(input).trim();
+    if (expr.startsWith('=')) {
+      expr = expr.substring(1).trim();
+    }
+
+    if (!expr) return '';
+
+    // Literal Quoted String: "Hello"
+    if (expr.startsWith('"') && expr.endsWith('"') && expr.length >= 2) {
+      return expr.substring(1, expr.length - 1);
+    }
+
+    // Pure Number
+    const rawNum = Number(expr);
+    if (!isNaN(rawNum) && !expr.includes(':') && !/[A-Z]/i.test(expr)) {
+      return rawNum;
+    }
+
+    // Direct Cell Reference: A1, B12
+    const singleCell = parseCellCoords(expr);
+    if (singleCell && grid[singleCell.r] && grid[singleCell.r][singleCell.c]) {
+      return grid[singleCell.r][singleCell.c].val;
+    }
+
+    // String Concatenation: expr & expr
+    let quote = false, paren = 0, concatIdx = -1;
+    for (let i = 0; i < expr.length; i++) {
+      if (expr[i] === '"') quote = !quote;
+      else if (expr[i] === '(' && !quote) paren++;
+      else if (expr[i] === ')' && !quote) paren--;
+      else if (expr[i] === '&' && !quote && paren === 0) {
+        concatIdx = i;
+        break;
+      }
+    }
+    if (concatIdx !== -1) {
+      const left = evaluateFormula(expr.substring(0, concatIdx), grid, depth + 1);
+      const right = evaluateFormula(expr.substring(concatIdx + 1), grid, depth + 1);
+      return String(left) + String(right);
+    }
+
+    // Binary Comparisons: >=, <=, <>, !=, ==, =, >, <
+    const compOps = ['>=', '<=', '<>', '!=', '==', '=', '>', '<'];
+    for (const op of compOps) {
+      quote = false; paren = 0;
+      let opIdx = -1;
+      for (let i = 0; i < expr.length; i++) {
+        if (expr[i] === '"') quote = !quote;
+        else if (expr[i] === '(' && !quote) paren++;
+        else if (expr[i] === ')' && !quote) paren--;
+        else if (!quote && paren === 0 && expr.startsWith(op, i)) {
+          opIdx = i;
+          break;
         }
-        return condition ? trueVal : falseVal;
+      }
+      if (opIdx !== -1) {
+        const left = evaluateFormula(expr.substring(0, opIdx), grid, depth + 1);
+        const right = evaluateFormula(expr.substring(opIdx + op.length), grid, depth + 1);
+        const numL = parseFloat(left);
+        const numR = parseFloat(right);
+        if (!isNaN(numL) && !isNaN(numR)) {
+          if (op === '>') return numL > numR;
+          if (op === '<') return numL < numR;
+          if (op === '>=') return numL >= numR;
+          if (op === '<=') return numL <= numR;
+          if (op === '=' || op === '==') return numL === numR;
+          if (op === '<>' || op === '!=') return numL !== numR;
+        }
+        const sL = String(left).toLowerCase();
+        const sR = String(right).toLowerCase();
+        if (op === '=' || op === '==') return sL === sR;
+        if (op === '<>' || op === '!=') return sL !== sR;
       }
     }
 
-    return input;
+    // Binary Arithmetic (+, - outside parens)
+    quote = false; paren = 0;
+    for (let i = expr.length - 1; i >= 0; i--) {
+      if (expr[i] === '"') quote = !quote;
+      else if (expr[i] === ')' && !quote) paren++;
+      else if (expr[i] === '(' && !quote) paren--;
+      else if ((expr[i] === '+' || expr[i] === '-') && !quote && paren === 0 && i > 0 && !/[+\-*\/^]/.test(expr[i - 1])) {
+        const left = evaluateFormula(expr.substring(0, i), grid, depth + 1);
+        const right = evaluateFormula(expr.substring(i + 1), grid, depth + 1);
+        return expr[i] === '+' ? (parseFloat(left) || 0) + (parseFloat(right) || 0) : (parseFloat(left) || 0) - (parseFloat(right) || 0);
+      }
+    }
+
+    // Binary Arithmetic (*, /, ^ outside parens)
+    quote = false; paren = 0;
+    for (let i = expr.length - 1; i >= 0; i--) {
+      if (expr[i] === '"') quote = !quote;
+      else if (expr[i] === ')' && !quote) paren++;
+      else if (expr[i] === '(' && !quote) paren--;
+      else if ((expr[i] === '*' || expr[i] === '/' || expr[i] === '^') && !quote && paren === 0) {
+        const left = parseFloat(evaluateFormula(expr.substring(0, i), grid, depth + 1)) || 0;
+        const right = parseFloat(evaluateFormula(expr.substring(i + 1), grid, depth + 1)) || 0;
+        if (expr[i] === '*') return left * right;
+        if (expr[i] === '/') return right !== 0 ? left / right : '#DIV/0!';
+        if (expr[i] === '^') return Math.pow(left, right);
+      }
+    }
+
+    // Function Calls: NAME(...)
+    const fnMatch = expr.match(/^([A-Z0-9_\.]+)\s*\((.*)\)$/is);
+    if (fnMatch) {
+      const fnName = fnMatch[1].toUpperCase();
+      const rawArgs = splitArguments(fnMatch[2]);
+
+      // --- LOOKUP FUNCTIONS ---
+      if (fnName === 'VLOOKUP') {
+        const lookupVal = evaluateFormula(rawArgs[0], grid, depth + 1);
+        const tableRange = rawArgs[1] ? rawArgs[1].trim() : '';
+        const colIdx = parseInt(evaluateFormula(rawArgs[2], grid, depth + 1), 10);
+        const table = get2DRange(tableRange, grid);
+        for (let r = 0; r < table.length; r++) {
+          if (String(table[r][0]).toLowerCase() === String(lookupVal).toLowerCase()) {
+            return table[r][colIdx - 1] !== undefined ? table[r][colIdx - 1] : '';
+          }
+        }
+        return '#N/A';
+      }
+
+      if (fnName === 'HLOOKUP') {
+        const lookupVal = evaluateFormula(rawArgs[0], grid, depth + 1);
+        const tableRange = rawArgs[1] ? rawArgs[1].trim() : '';
+        const rowIdx = parseInt(evaluateFormula(rawArgs[2], grid, depth + 1), 10);
+        const table = get2DRange(tableRange, grid);
+        if (table.length > 0) {
+          for (let c = 0; c < table[0].length; c++) {
+            if (String(table[0][c]).toLowerCase() === String(lookupVal).toLowerCase()) {
+              return table[rowIdx - 1] && table[rowIdx - 1][c] !== undefined ? table[rowIdx - 1][c] : '';
+            }
+          }
+        }
+        return '#N/A';
+      }
+
+      if (fnName === 'XLOOKUP') {
+        const lookupVal = evaluateFormula(rawArgs[0], grid, depth + 1);
+        const lookupList = getRangeValues(rawArgs[1], grid);
+        const returnList = getRangeValues(rawArgs[2], grid);
+        const ifNotFound = rawArgs[3] !== undefined ? evaluateFormula(rawArgs[3], grid, depth + 1) : '#N/A';
+        for (let i = 0; i < lookupList.length; i++) {
+          if (String(lookupList[i]).toLowerCase() === String(lookupVal).toLowerCase()) {
+            return returnList[i] !== undefined ? returnList[i] : '';
+          }
+        }
+        return ifNotFound;
+      }
+
+      if (fnName === 'INDEX') {
+        const table = get2DRange(rawArgs[0], grid);
+        const rNum = parseInt(evaluateFormula(rawArgs[1], grid, depth + 1), 10);
+        const cNum = rawArgs[2] !== undefined ? parseInt(evaluateFormula(rawArgs[2], grid, depth + 1), 10) : 1;
+        if (table[rNum - 1] && table[rNum - 1][cNum - 1] !== undefined) {
+          return table[rNum - 1][cNum - 1];
+        }
+        return '#REF!';
+      }
+
+      if (fnName === 'MATCH') {
+        const lookupVal = evaluateFormula(rawArgs[0], grid, depth + 1);
+        const list = getRangeValues(rawArgs[1], grid);
+        for (let i = 0; i < list.length; i++) {
+          if (String(list[i]).toLowerCase() === String(lookupVal).toLowerCase()) {
+            return i + 1;
+          }
+        }
+        return '#N/A';
+      }
+
+      if (fnName === 'CHOOSE') {
+        const idx = parseInt(evaluateFormula(rawArgs[0], grid, depth + 1), 10);
+        if (idx >= 1 && idx < rawArgs.length) {
+          return evaluateFormula(rawArgs[idx], grid, depth + 1);
+        }
+        return '#VALUE!';
+      }
+
+      // --- LOGICAL & ERROR FUNCTIONS ---
+      if (fnName === 'IF') {
+        const cond = evaluateFormula(rawArgs[0], grid, depth + 1);
+        const isTrue = cond === true || (typeof cond === 'number' && cond !== 0) || (typeof cond === 'string' && cond.toLowerCase() === 'true');
+        if (isTrue) {
+          return evaluateFormula(rawArgs[1], grid, depth + 1);
+        } else {
+          return rawArgs[2] !== undefined ? evaluateFormula(rawArgs[2], grid, depth + 1) : false;
+        }
+      }
+
+      if (fnName === 'IFS') {
+        for (let i = 0; i < rawArgs.length; i += 2) {
+          const cond = evaluateFormula(rawArgs[i], grid, depth + 1);
+          if (cond === true || (typeof cond === 'number' && cond !== 0) || (typeof cond === 'string' && cond.toLowerCase() === 'true')) {
+            return evaluateFormula(rawArgs[i + 1], grid, depth + 1);
+          }
+        }
+        return '#N/A';
+      }
+
+      if (fnName === 'IFERROR') {
+        try {
+          const val = evaluateFormula(rawArgs[0], grid, depth + 1);
+          if (val === '#N/A' || val === '#DIV/0!' || val === '#VALUE!' || val === '#REF!' || val === '#ERROR!' || (typeof val === 'number' && isNaN(val))) {
+            return evaluateFormula(rawArgs[1], grid, depth + 1);
+          }
+          return val;
+        } catch {
+          return evaluateFormula(rawArgs[1], grid, depth + 1);
+        }
+      }
+
+      if (fnName === 'AND') {
+        return rawArgs.every(a => {
+          const v = evaluateFormula(a, grid, depth + 1);
+          return v === true || (typeof v === 'number' && v !== 0) || String(v).toLowerCase() === 'true';
+        });
+      }
+
+      if (fnName === 'OR') {
+        return rawArgs.some(a => {
+          const v = evaluateFormula(a, grid, depth + 1);
+          return v === true || (typeof v === 'number' && v !== 0) || String(v).toLowerCase() === 'true';
+        });
+      }
+
+      if (fnName === 'NOT') {
+        const v = evaluateFormula(rawArgs[0], grid, depth + 1);
+        return !(v === true || (typeof v === 'number' && v !== 0) || String(v).toLowerCase() === 'true');
+      }
+
+      if (fnName === 'ISBLANK') {
+        const v = evaluateFormula(rawArgs[0], grid, depth + 1);
+        return v === '' || v === null || v === undefined;
+      }
+
+      if (fnName === 'ISNUMBER') {
+        const v = evaluateFormula(rawArgs[0], grid, depth + 1);
+        return typeof v === 'number' && !isNaN(v);
+      }
+
+      if (fnName === 'ISTEXT') {
+        const v = evaluateFormula(rawArgs[0], grid, depth + 1);
+        return typeof v === 'string' && isNaN(Number(v));
+      }
+
+      // --- CONDITIONAL AGGREGATIONS ---
+      if (fnName === 'SUMIF') {
+        const checkRange = getRangeValues(rawArgs[0], grid);
+        const crit = evaluateFormula(rawArgs[1], grid, depth + 1);
+        const sumRange = rawArgs[2] ? getRangeValues(rawArgs[2], grid) : checkRange;
+        let total = 0;
+        for (let i = 0; i < checkRange.length; i++) {
+          if (matchesCriteria(checkRange[i], crit)) {
+            total += parseFloat(sumRange[i]) || 0;
+          }
+        }
+        return total;
+      }
+
+      if (fnName === 'COUNTIF') {
+        const checkRange = getRangeValues(rawArgs[0], grid);
+        const crit = evaluateFormula(rawArgs[1], grid, depth + 1);
+        let count = 0;
+        for (let i = 0; i < checkRange.length; i++) {
+          if (matchesCriteria(checkRange[i], crit)) count++;
+        }
+        return count;
+      }
+
+      if (fnName === 'AVERAGEIF') {
+        const checkRange = getRangeValues(rawArgs[0], grid);
+        const crit = evaluateFormula(rawArgs[1], grid, depth + 1);
+        const avgRange = rawArgs[2] ? getRangeValues(rawArgs[2], grid) : checkRange;
+        let sum = 0, count = 0;
+        for (let i = 0; i < checkRange.length; i++) {
+          if (matchesCriteria(checkRange[i], crit)) {
+            sum += parseFloat(avgRange[i]) || 0;
+            count++;
+          }
+        }
+        return count ? Math.round((sum / count) * 100) / 100 : 0;
+      }
+
+      // --- MATH & STATS ---
+      if (fnName === 'ROUND' || fnName === 'ROUNDUP' || fnName === 'ROUNDDOWN') {
+        const num = parseFloat(evaluateFormula(rawArgs[0], grid, depth + 1)) || 0;
+        const digits = parseInt(evaluateFormula(rawArgs[1] || '0', grid, depth + 1), 10);
+        const factor = Math.pow(10, digits);
+        if (fnName === 'ROUND') return Math.round(num * factor) / factor;
+        if (fnName === 'ROUNDUP') return Math.ceil(num * factor) / factor;
+        if (fnName === 'ROUNDDOWN') return Math.floor(num * factor) / factor;
+      }
+
+      if (fnName === 'ABS') return Math.abs(parseFloat(evaluateFormula(rawArgs[0], grid, depth + 1)) || 0);
+      if (fnName === 'MOD') {
+        const n = parseFloat(evaluateFormula(rawArgs[0], grid, depth + 1)) || 0;
+        const d = parseFloat(evaluateFormula(rawArgs[1], grid, depth + 1)) || 1;
+        return n % d;
+      }
+      if (fnName === 'POWER') {
+        return Math.pow(parseFloat(evaluateFormula(rawArgs[0], grid, depth + 1)) || 0, parseFloat(evaluateFormula(rawArgs[1], grid, depth + 1)) || 0);
+      }
+      if (fnName === 'SQRT') return Math.sqrt(parseFloat(evaluateFormula(rawArgs[0], grid, depth + 1)) || 0);
+      if (fnName === 'INT') return Math.floor(parseFloat(evaluateFormula(rawArgs[0], grid, depth + 1)) || 0);
+
+      // --- TEXT FUNCTIONS ---
+      if (fnName === 'CONCAT' || fnName === 'CONCATENATE') {
+        return rawArgs.map(a => {
+          if (/^[A-Z]+\d+:[A-Z]+\d+$/i.test(a.trim())) return getRangeValues(a, grid).join('');
+          return String(evaluateFormula(a, grid, depth + 1) || '');
+        }).join('');
+      }
+
+      if (fnName === 'LEFT') {
+        const str = String(evaluateFormula(rawArgs[0], grid, depth + 1) || '');
+        const len = rawArgs[1] ? parseInt(evaluateFormula(rawArgs[1], grid, depth + 1), 10) : 1;
+        return str.substring(0, len);
+      }
+
+      if (fnName === 'RIGHT') {
+        const str = String(evaluateFormula(rawArgs[0], grid, depth + 1) || '');
+        const len = rawArgs[1] ? parseInt(evaluateFormula(rawArgs[1], grid, depth + 1), 10) : 1;
+        return str.slice(-len);
+      }
+
+      if (fnName === 'MID') {
+        const str = String(evaluateFormula(rawArgs[0], grid, depth + 1) || '');
+        const start = parseInt(evaluateFormula(rawArgs[1], grid, depth + 1), 10);
+        const len = parseInt(evaluateFormula(rawArgs[2], grid, depth + 1), 10);
+        return str.substring(start - 1, start - 1 + len);
+      }
+
+      if (fnName === 'LEN') return String(evaluateFormula(rawArgs[0], grid, depth + 1) || '').length;
+      if (fnName === 'TRIM') return String(evaluateFormula(rawArgs[0], grid, depth + 1) || '').trim().replace(/\s+/g, ' ');
+      if (fnName === 'UPPER') return String(evaluateFormula(rawArgs[0], grid, depth + 1) || '').toUpperCase();
+      if (fnName === 'LOWER') return String(evaluateFormula(rawArgs[0], grid, depth + 1) || '').toLowerCase();
+      if (fnName === 'PROPER') {
+        return String(evaluateFormula(rawArgs[0], grid, depth + 1) || '').replace(/\b\w/g, l => l.toUpperCase());
+      }
+
+      // --- DATE & TIME ---
+      if (fnName === 'TODAY') return new Date().toISOString().split('T')[0];
+      if (fnName === 'NOW') return new Date().toLocaleString('ko-KR');
+      if (fnName === 'DATE') {
+        const y = parseInt(evaluateFormula(rawArgs[0], grid, depth + 1), 10);
+        const m = parseInt(evaluateFormula(rawArgs[1], grid, depth + 1), 10) - 1;
+        const d = parseInt(evaluateFormula(rawArgs[2], grid, depth + 1), 10);
+        return new Date(Date.UTC(y, m, d)).toISOString().split('T')[0];
+      }
+      if (fnName === 'YEAR' || fnName === 'MONTH' || fnName === 'DAY') {
+        const dVal = new Date(evaluateFormula(rawArgs[0], grid, depth + 1));
+        if (isNaN(dVal.getTime())) return '#VALUE!';
+        if (fnName === 'YEAR') return dVal.getFullYear();
+        if (fnName === 'MONTH') return dVal.getMonth() + 1;
+        if (fnName === 'DAY') return dVal.getDate();
+      }
+
+      // --- STANDARD AGGREGATIONS ---
+      const allVals = [];
+      for (const a of rawArgs) {
+        if (/^[A-Z]+\d+:[A-Z]+\d+$/i.test(a.trim())) {
+          allVals.push(...getRangeValues(a, grid));
+        } else {
+          allVals.push(evaluateFormula(a, grid, depth + 1));
+        }
+      }
+
+      const numList = allVals.map(Number).filter(n => !isNaN(n));
+      if (fnName === 'SUM') return numList.reduce((acc, v) => acc + v, 0);
+      if (fnName === 'AVERAGE') {
+        return numList.length ? Math.round((numList.reduce((acc, v) => acc + v, 0) / numList.length) * 100) / 100 : 0;
+      }
+      if (fnName === 'COUNT') return numList.length;
+      if (fnName === 'COUNTA') return allVals.filter(v => v !== '' && v !== null && v !== undefined).length;
+      if (fnName === 'COUNTBLANK') return allVals.filter(v => v === '' || v === null || v === undefined).length;
+      if (fnName === 'MAX') return numList.length ? Math.max(...numList) : 0;
+      if (fnName === 'MIN') return numList.length ? Math.min(...numList) : 0;
+      if (fnName === 'PRODUCT') return numList.length ? numList.reduce((acc, v) => acc * v, 1) : 0;
+      if (fnName === 'MEDIAN') {
+        if (!numList.length) return 0;
+        numList.sort((a, b) => a - b);
+        const mid = Math.floor(numList.length / 2);
+        return numList.length % 2 !== 0 ? numList[mid] : (numList[mid - 1] + numList[mid]) / 2;
+      }
+    }
+
+    return expr;
   }
 
   function getRangeValues(rangeStr, grid) {
@@ -370,7 +845,18 @@
     for (let c = 0; c < numCols; c++) {
       const w = colWidths[c] ? `style="width:${colWidths[c]}px;min-width:${colWidths[c]}px;"` : '';
       const isActive = (c >= minC && c <= maxC);
-      theadHtml += `<th class="col-header ${isActive ? 'active' : ''}" data-c="${c}" ${w}>${colIndexToName(c)}<div class="col-resizer" data-c="${c}"></div></th>`;
+      let filterBtn = '';
+      if (isFilterActive) {
+        const isFiltered = activeFilters[c] !== undefined;
+        filterBtn = `<span class="col-filter-btn ${isFiltered ? 'filtered' : ''}" data-c="${c}">▾</span>`;
+      }
+      theadHtml += `<th class="col-header ${isActive ? 'active' : ''}" data-c="${c}" ${w}>
+        <div class="col-header-content">
+          <span>${colIndexToName(c)}</span>
+          ${filterBtn}
+        </div>
+        <div class="col-resizer" data-c="${c}"></div>
+      </th>`;
     }
     theadHtml += '</tr>';
     theadEl.innerHTML = theadHtml;
@@ -379,9 +865,21 @@
     let tbodyHtml = '';
 
     for (let r = 0; r < numRows; r++) {
-      const h = rowHeights[r] ? `style="height:${rowHeights[r]}px;"` : '';
+      let isRowVisible = true;
+      if (isFilterActive && Object.keys(activeFilters).length > 0 && r > 0) {
+        for (const [colIdx, allowedSet] of Object.entries(activeFilters)) {
+          const cellVal = String(grid[r][colIdx] ? grid[r][colIdx].val : '');
+          if (!allowedSet.has(cellVal)) {
+            isRowVisible = false;
+            break;
+          }
+        }
+      }
+
+      const rowStyle = (rowHeights[r] ? `height:${rowHeights[r]}px;` : '') + (isRowVisible ? '' : 'display:none;');
+      const h = rowStyle ? `style="${rowStyle}"` : '';
       const isActive = (r >= minR && r <= maxR);
-      tbodyHtml += `<tr><th class="row-header ${isActive ? 'active' : ''}" data-r="${r}" ${h}>${r + 1}<div class="row-resizer" data-r="${r}"></div></th>`;
+      tbodyHtml += `<tr ${h}><th class="row-header ${isActive ? 'active' : ''}" data-r="${r}">${r + 1}<div class="row-resizer" data-r="${r}"></div></th>`;
       for (let c = 0; c < numCols; c++) {
         const cell = grid[r][c];
         if (cell.mergedInto) {
@@ -791,6 +1289,275 @@
     renderGrid();
   });
 
+  // --- AUTOFILTER CONTROLLER ---
+  toolToggleFilter.addEventListener('click', () => {
+    isFilterActive = !isFilterActive;
+    toolToggleFilter.classList.toggle('active', isFilterActive);
+    if (!isFilterActive) {
+      activeFilters = {};
+    }
+    renderGrid();
+  });
+
+  theadEl.addEventListener('click', (e) => {
+    const filterBtn = e.target.closest('.col-filter-btn');
+    if (!filterBtn) return;
+    e.stopPropagation();
+    const c = parseInt(filterBtn.getAttribute('data-c'), 10);
+    currentFilterCol = c;
+    const rect = filterBtn.getBoundingClientRect();
+    filterDropdownMenu.style.top = `${rect.bottom + 4}px`;
+    filterDropdownMenu.style.left = `${Math.min(window.innerWidth - 240, rect.left)}px`;
+    filterColTitle.textContent = `Filter: ${colIndexToName(c)}`;
+
+    const grid = sheets[activeSheet];
+    const uniqueVals = new Set();
+    for (let r = 1; r < grid.length; r++) {
+      if (grid[r] && grid[r][c]) {
+        uniqueVals.add(String(grid[r][c].val !== undefined ? grid[r][c].val : ''));
+      }
+    }
+    const sortedVals = Array.from(uniqueVals).sort((a, b) => a.localeCompare(b, 'ko-KR', { numeric: true }));
+    const allowed = activeFilters[c] || new Set(sortedVals);
+
+    let listHtml = `<label class="filter-item-label" style="font-weight:700;"><input type="checkbox" id="filter-select-all" ${allowed.size === sortedVals.length ? 'checked' : ''}> (Select All)</label>`;
+    sortedVals.forEach(val => {
+      const isChecked = allowed.has(val);
+      listHtml += `<label class="filter-item-label"><input type="checkbox" class="filter-val-cb" value="${escapeHtml(val)}" ${isChecked ? 'checked' : ''}> <span>${escapeHtml(val || '(Blanks)')}</span></label>`;
+    });
+    filterItemsList.innerHTML = listHtml;
+    filterSearchInput.value = '';
+    filterDropdownMenu.classList.remove('hidden');
+
+    const selectAllCb = document.getElementById('filter-select-all');
+    if (selectAllCb) {
+      selectAllCb.addEventListener('change', () => {
+        const cbs = filterItemsList.querySelectorAll('.filter-val-cb');
+        cbs.forEach(cb => cb.checked = selectAllCb.checked);
+      });
+    }
+  });
+
+  filterSearchInput.addEventListener('input', () => {
+    const q = filterSearchInput.value.toLowerCase();
+    const labels = filterItemsList.querySelectorAll('.filter-item-label');
+    labels.forEach((lbl, idx) => {
+      if (idx === 0) return;
+      const txt = lbl.textContent.toLowerCase();
+      lbl.style.display = txt.includes(q) ? 'flex' : 'none';
+    });
+  });
+
+  btnFilterApply.addEventListener('click', () => {
+    const selectedVals = new Set();
+    filterItemsList.querySelectorAll('.filter-val-cb:checked').forEach(cb => {
+      selectedVals.add(cb.value);
+    });
+    activeFilters[currentFilterCol] = selectedVals;
+    filterDropdownMenu.classList.add('hidden');
+    renderGrid();
+  });
+
+  btnFilterClear.addEventListener('click', () => {
+    delete activeFilters[currentFilterCol];
+    filterDropdownMenu.classList.add('hidden');
+    renderGrid();
+  });
+
+  btnFilterSortAsc.addEventListener('click', () => {
+    const grid = sheets[activeSheet];
+    const col = currentFilterCol;
+    const header = grid[0];
+    const rows = grid.slice(1);
+    rows.sort((a, b) => {
+      const valA = a[col] ? a[col].val : '';
+      const valB = b[col] ? b[col].val : '';
+      return String(valA).localeCompare(String(valB), 'ko-KR', { numeric: true });
+    });
+    sheets[activeSheet] = [header, ...rows];
+    filterDropdownMenu.classList.add('hidden');
+    markDirty(true);
+    renderGrid();
+  });
+
+  btnFilterSortDesc.addEventListener('click', () => {
+    const grid = sheets[activeSheet];
+    const col = currentFilterCol;
+    const header = grid[0];
+    const rows = grid.slice(1);
+    rows.sort((a, b) => {
+      const valA = a[col] ? a[col].val : '';
+      const valB = b[col] ? b[col].val : '';
+      return String(valB).localeCompare(String(valA), 'ko-KR', { numeric: true });
+    });
+    sheets[activeSheet] = [header, ...rows];
+    filterDropdownMenu.classList.add('hidden');
+    markDirty(true);
+    renderGrid();
+  });
+
+  // --- FORMULAS RIBBON EXTENSIONS ---
+  document.getElementById('fn-vlookup')?.addEventListener('click', () => {
+    setCellValue(selectedCell.r, selectedCell.c, `=VLOOKUP(A${selectedCell.r + 1}, A1:C10, 2, FALSE)`);
+  });
+  document.getElementById('fn-xlookup')?.addEventListener('click', () => {
+    setCellValue(selectedCell.r, selectedCell.c, `=XLOOKUP(A${selectedCell.r + 1}, A1:A10, B1:B10)`);
+  });
+  document.getElementById('fn-concat')?.addEventListener('click', () => {
+    setCellValue(selectedCell.r, selectedCell.c, `=CONCAT(A${selectedCell.r + 1}, " ", B${selectedCell.r + 1})`);
+  });
+  document.getElementById('fn-today')?.addEventListener('click', () => {
+    setCellValue(selectedCell.r, selectedCell.c, `=TODAY()`);
+  });
+  document.getElementById('insert-fn-sum')?.addEventListener('click', () => {
+    document.getElementById('fn-autosum').click();
+  });
+  document.getElementById('insert-fn-avg')?.addEventListener('click', () => {
+    document.getElementById('fn-average').click();
+  });
+  document.getElementById('insert-fn-count')?.addEventListener('click', () => {
+    setCellValue(selectedCell.r, selectedCell.c, `=COUNT(${colIndexToName(selectedCell.c)}1:${colIndexToName(selectedCell.c)}${selectedCell.r})`);
+  });
+  document.getElementById('insert-fn-if')?.addEventListener('click', () => {
+    setCellValue(selectedCell.r, selectedCell.c, `=IF(${colIndexToName(selectedCell.c)}1>100, "Pass", "Fail")`);
+  });
+
+  // --- FIND & REPLACE CONTROLLER ---
+  function runFind() {
+    const q = findInput.value.trim().toLowerCase();
+    findMatches = [];
+    findMatchIndex = -1;
+    if (!q) {
+      findMatchBadge.textContent = '0 / 0';
+      return;
+    }
+    const grid = sheets[activeSheet];
+    for (let r = 0; r < grid.length; r++) {
+      for (let c = 0; c < grid[r].length; c++) {
+        const val = String(grid[r][c].val || '').toLowerCase();
+        const raw = String(grid[r][c].raw || '').toLowerCase();
+        if (val.includes(q) || raw.includes(q)) {
+          findMatches.push({ r, c });
+        }
+      }
+    }
+    if (findMatches.length > 0) {
+      findMatchIndex = 0;
+      findMatchBadge.textContent = `1 / ${findMatches.length}`;
+      selectCell(findMatches[0].r, findMatches[0].c);
+    } else {
+      findMatchBadge.textContent = '0 / 0';
+    }
+  }
+
+  btnFindNext.addEventListener('click', () => {
+    if (findMatches.length === 0) return;
+    findMatchIndex = (findMatchIndex + 1) % findMatches.length;
+    findMatchBadge.textContent = `${findMatchIndex + 1} / ${findMatches.length}`;
+    selectCell(findMatches[findMatchIndex].r, findMatches[findMatchIndex].c);
+  });
+
+  btnFindPrev.addEventListener('click', () => {
+    if (findMatches.length === 0) return;
+    findMatchIndex = (findMatchIndex - 1 + findMatches.length) % findMatches.length;
+    findMatchBadge.textContent = `${findMatchIndex + 1} / ${findMatches.length}`;
+    selectCell(findMatches[findMatchIndex].r, findMatches[findMatchIndex].c);
+  });
+
+  btnToggleReplace.addEventListener('click', () => {
+    isReplaceMode = !isReplaceMode;
+    replaceInput.style.display = isReplaceMode ? 'inline-block' : 'none';
+    btnReplaceOne.style.display = isReplaceMode ? 'inline-block' : 'none';
+    btnReplaceAll.style.display = isReplaceMode ? 'inline-block' : 'none';
+  });
+
+  btnReplaceOne.addEventListener('click', () => {
+    if (findMatches.length === 0 || findMatchIndex < 0) return;
+    const match = findMatches[findMatchIndex];
+    const grid = sheets[activeSheet];
+    const targetCell = grid[match.r][match.c];
+    const q = findInput.value.trim();
+    const rep = replaceInput.value;
+    const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    targetCell.raw = String(targetCell.raw || targetCell.val || '').replace(regex, rep);
+    markDirty(true);
+    renderGrid();
+    runFind();
+  });
+
+  btnReplaceAll.addEventListener('click', () => {
+    if (findMatches.length === 0) return;
+    const q = findInput.value.trim();
+    const rep = replaceInput.value;
+    const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    const grid = sheets[activeSheet];
+    findMatches.forEach(m => {
+      const cell = grid[m.r][m.c];
+      cell.raw = String(cell.raw || cell.val || '').replace(regex, rep);
+    });
+    markDirty(true);
+    renderGrid();
+    runFind();
+  });
+
+  findInput.addEventListener('input', runFind);
+  btnCloseFind.addEventListener('click', () => findReplaceBar.classList.add('hidden'));
+
+  // --- FORMULA AUTOCOMPLETE & SIGNATURE HELPER ---
+  formulaInput.addEventListener('input', () => {
+    const val = formulaInput.value;
+    if (!val.startsWith('=')) {
+      formulaAutocomplete.classList.add('hidden');
+      formulaSignatureHint.classList.add('hidden');
+      return;
+    }
+
+    const openParenMatch = val.match(/([A-Z0-9_\.]+)\s*\([^\)]*$/i);
+    if (openParenMatch) {
+      const fnName = openParenMatch[1].toUpperCase();
+      const fnInfo = FUNCTION_CATALOG.find(f => f.name === fnName);
+      if (fnInfo) {
+        formulaSignatureHint.textContent = `${fnInfo.sig} — ${fnInfo.desc}`;
+        formulaSignatureHint.classList.remove('hidden');
+        formulaAutocomplete.classList.add('hidden');
+        return;
+      }
+    }
+
+    if (!val.includes('(')) {
+      formulaSignatureHint.classList.add('hidden');
+      const searchWord = val.substring(1).trim().toUpperCase();
+      if (searchWord.length > 0) {
+        const matches = FUNCTION_CATALOG.filter(f => f.name.startsWith(searchWord)).slice(0, 8);
+        if (matches.length > 0) {
+          let html = '';
+          matches.forEach((m, idx) => {
+            html += `<div class="formula-suggest-item ${idx === 0 ? 'selected' : ''}" data-name="${m.name}">
+              <span class="formula-suggest-name">${m.name}</span>
+              <span class="formula-suggest-desc">${m.desc}</span>
+            </div>`;
+          });
+          formulaAutocomplete.innerHTML = html;
+          formulaAutocomplete.classList.remove('hidden');
+          return;
+        }
+      }
+    }
+    formulaAutocomplete.classList.add('hidden');
+    if (!val.includes('(')) {
+      formulaSignatureHint.classList.add('hidden');
+    }
+  });
+
+  formulaAutocomplete.addEventListener('click', (e) => {
+    const item = e.target.closest('.formula-suggest-item');
+    if (!item) return;
+    const fn = item.getAttribute('data-name');
+    formulaInput.value = `=${fn}(`;
+    formulaAutocomplete.classList.add('hidden');
+    formulaInput.focus();
+  });
+
   // Gridlines & Formula Bar Toggle
   checkGridlines.addEventListener('change', () => {
     document.getElementById('grid-table').style.borderCollapse = checkGridlines.checked ? 'separate' : 'collapse';
@@ -1006,6 +1773,23 @@
       saveCurrentWorkbook();
       return;
     }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+      e.preventDefault();
+      findReplaceBar.classList.remove('hidden');
+      findInput.focus();
+      findInput.select();
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
+      e.preventDefault();
+      findReplaceBar.classList.remove('hidden');
+      isReplaceMode = true;
+      replaceInput.style.display = 'inline-block';
+      btnReplaceOne.style.display = 'inline-block';
+      btnReplaceAll.style.display = 'inline-block';
+      findInput.focus();
+      return;
+    }
     if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
       e.preventDefault();
       toolBold.click();
@@ -1067,24 +1851,106 @@
     }
   });
 
-  // Sheet Add Button
+  // --- SHEET TAB MANAGEMENT (Add, Inline Rename, Context Menu) ---
+  function renderSheetTabs() {
+    sheetTabsEl.innerHTML = '';
+    Object.keys(sheets).forEach(name => {
+      const tab = document.createElement('button');
+      tab.className = `sheet-tab ${name === activeSheet ? 'active' : ''}`;
+      tab.textContent = name;
+      tab.setAttribute('data-sheet', name);
+      tab.addEventListener('click', () => switchSheet(name));
+      sheetTabsEl.appendChild(tab);
+    });
+    sheetTabsEl.appendChild(btnAddSheet);
+  }
+
+  sheetTabsEl.addEventListener('dblclick', (e) => {
+    const tab = e.target.closest('.sheet-tab');
+    if (!tab) return;
+    const oldName = tab.getAttribute('data-sheet');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'sheet-tab-input';
+    input.value = oldName;
+    tab.innerHTML = '';
+    tab.appendChild(input);
+    input.focus();
+    input.select();
+
+    const finishRename = () => {
+      const newName = input.value.trim();
+      if (newName && newName !== oldName && !sheets[newName]) {
+        sheets[newName] = sheets[oldName];
+        delete sheets[oldName];
+        if (activeSheet === oldName) activeSheet = newName;
+        markDirty(true);
+      }
+      renderSheetTabs();
+    };
+
+    input.addEventListener('keydown', (ke) => {
+      if (ke.key === 'Enter') finishRename();
+      if (ke.key === 'Escape') renderSheetTabs();
+    });
+    input.addEventListener('blur', finishRename);
+  });
+
+  sheetTabsEl.addEventListener('contextmenu', (e) => {
+    const tab = e.target.closest('.sheet-tab');
+    if (!tab) return;
+    e.preventDefault();
+    targetContextMenuSheet = tab.getAttribute('data-sheet');
+    sheetTabContextMenu.style.top = `${e.clientY - 90}px`;
+    sheetTabContextMenu.style.left = `${e.clientX}px`;
+    sheetTabContextMenu.classList.remove('hidden');
+  });
+
+  sheetTabContextMenu.addEventListener('click', (e) => {
+    const action = e.target.getAttribute('data-action');
+    if (!action || !targetContextMenuSheet) return;
+    sheetTabContextMenu.classList.add('hidden');
+
+    if (action === 'rename-sheet') {
+      const tab = sheetTabsEl.querySelector(`.sheet-tab[data-sheet="${targetContextMenuSheet}"]`);
+      if (tab) {
+        tab.dispatchEvent(new MouseEvent('dblclick'));
+      }
+    } else if (action === 'duplicate-sheet') {
+      const newName = `${targetContextMenuSheet} (Copy)`;
+      sheets[newName] = JSON.parse(JSON.stringify(sheets[targetContextMenuSheet]));
+      markDirty(true);
+      switchSheet(newName);
+    } else if (action === 'delete-sheet') {
+      if (Object.keys(sheets).length <= 1) {
+        vscode.postMessage({ type: 'gridcraft:error', text: 'A workbook must contain at least one visible worksheet.' });
+        return;
+      }
+      delete sheets[targetContextMenuSheet];
+      const remaining = Object.keys(sheets);
+      activeSheet = remaining[0];
+      markDirty(true);
+      renderSheetTabs();
+      renderGrid();
+    }
+  });
+
+  window.addEventListener('click', (e) => {
+    if (!sheetTabContextMenu.contains(e.target) && !e.target.closest('.sheet-tab')) {
+      sheetTabContextMenu.classList.add('hidden');
+    }
+  });
+
   btnAddSheet.addEventListener('click', () => {
     const name = `Sheet${Object.keys(sheets).length + 1}`;
     sheets[name] = createInitialGrid(35, 16);
-    const tab = document.createElement('button');
-    tab.className = 'sheet-tab';
-    tab.textContent = name;
-    tab.setAttribute('data-sheet', name);
-    tab.addEventListener('click', () => switchSheet(name));
-    sheetTabsEl.insertBefore(tab, btnAddSheet);
+    markDirty(true);
     switchSheet(name);
   });
 
   function switchSheet(name) {
     activeSheet = name;
-    document.querySelectorAll('.sheet-tab').forEach(t => {
-      t.classList.toggle('active', t.getAttribute('data-sheet') === name);
-    });
+    renderSheetTabs();
     renderGrid();
   }
 
@@ -1103,18 +1969,8 @@
         docTitleEl.textContent = message.filename;
         sheets = message.sheets || { Sheet1: createInitialGrid(35, 16) };
         const sheetNames = message.sheetNames || Object.keys(sheets);
-        
-        sheetTabsEl.innerHTML = '';
-        sheetNames.forEach(name => {
-          const tab = document.createElement('button');
-          tab.className = `sheet-tab ${name === sheetNames[0] ? 'active' : ''}`;
-          tab.textContent = name;
-          tab.setAttribute('data-sheet', name);
-          tab.addEventListener('click', () => switchSheet(name));
-          sheetTabsEl.appendChild(tab);
-        });
-        sheetTabsEl.appendChild(btnAddSheet);
         activeSheet = sheetNames[0] || 'Sheet1';
+        renderSheetTabs();
         renderGrid();
         break;
 
@@ -1170,6 +2026,7 @@
 
         sheets = { Sheet1: textGrid };
         activeSheet = 'Sheet1';
+        renderSheetTabs();
         renderGrid();
         break;
     }

@@ -790,3 +790,273 @@ body.gridcraft-root {
   border: 1px solid var(--glass-border-subtle);
   box-shadow: var(--glass-inner-glow);
 }
+
+/* --- ADVANCED ENTERPRISE EXCEL CONTROLS --- */
+
+/* Column AutoFilter Dropdown Button */
+.col-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.col-filter-btn {
+  margin-left: 6px;
+  font-size: 9px;
+  cursor: pointer;
+  background: var(--glass-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 3px;
+  padding: 1px 4px;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.col-filter-btn:hover {
+  background: var(--glass-card-hover);
+  color: var(--text-main);
+}
+
+.col-filter-btn.filtered {
+  background: var(--emerald-pill-bg);
+  color: #ffffff;
+  border-color: var(--selection-border);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+/* AutoFilter Dropdown Popup */
+.filter-dropdown-menu {
+  position: fixed;
+  background: var(--glass-base);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  box-shadow: var(--glass-shadow-lg);
+  padding: 10px;
+  min-width: 200px;
+  max-width: 260px;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-dropdown-menu.hidden {
+  display: none;
+}
+
+.filter-search-input {
+  background: var(--glass-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 11px;
+  color: var(--text-main);
+  outline: none;
+}
+
+.filter-items-list {
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: 6px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.filter-item-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  font-size: 11px;
+  color: var(--text-main);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.filter-item-label:hover {
+  background: var(--glass-card-hover);
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.filter-action-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid var(--glass-border);
+}
+
+.filter-action-btn.apply {
+  background: var(--emerald-pill-bg);
+  color: #fff;
+  border: none;
+}
+
+.filter-action-btn.clear {
+  background: var(--glass-card);
+  color: var(--text-muted);
+}
+
+/* Floating Find & Replace Toolbar */
+.find-replace-bar {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  background: var(--glass-base);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  box-shadow: var(--glass-shadow-lg);
+  padding: 8px 12px;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.find-replace-bar.hidden {
+  display: none;
+}
+
+.find-input {
+  background: var(--glass-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--text-main);
+  outline: none;
+  width: 140px;
+}
+
+.find-replace-btn {
+  background: var(--glass-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.find-replace-btn:hover {
+  background: var(--glass-card-hover);
+}
+
+.find-match-badge {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 50px;
+  text-align: center;
+}
+
+.find-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+/* Formula Autocomplete & Helper Box */
+.formula-autocomplete-box {
+  position: absolute;
+  background: var(--glass-base);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  box-shadow: var(--glass-shadow-lg);
+  max-height: 200px;
+  width: 280px;
+  overflow-y: auto;
+  z-index: 130;
+  display: flex;
+  flex-direction: column;
+}
+
+.formula-autocomplete-box.hidden {
+  display: none;
+}
+
+.formula-suggest-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--glass-border-subtle);
+  color: var(--text-main);
+}
+
+.formula-suggest-item:hover, .formula-suggest-item.selected {
+  background: var(--selection-bg);
+  color: var(--selection-border);
+  font-weight: 700;
+}
+
+.formula-suggest-name {
+  font-weight: 700;
+}
+
+.formula-suggest-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Formula Signature Hint */
+.formula-signature-hint {
+  position: absolute;
+  top: 100%;
+  left: 90px;
+  margin-top: 4px;
+  background: var(--glass-base);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--selection-border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text-main);
+  box-shadow: var(--glass-shadow);
+  z-index: 125;
+}
+
+.formula-signature-hint.hidden {
+  display: none;
+}
+
+/* Inline Sheet Tab Renaming */
+.sheet-tab-input {
+  background: var(--glass-card-active);
+  border: 1px solid var(--selection-border);
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  outline: none;
+  width: 80px;
+}

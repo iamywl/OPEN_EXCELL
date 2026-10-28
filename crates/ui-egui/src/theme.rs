@@ -160,41 +160,42 @@ impl Tokens {
     }
 
     /// One palette for both modes: each colour is written once, with its light and dark values.
+    /// Tuned for Ultra Glassmorphism: Frosted Slate backgrounds, Emerald neon accents, and soft elevation.
     fn palette(dark: bool) -> Tokens {
         Tokens {
             dark,
-            window: pick(dark, Color32::from_rgb(0xF3, 0xF3, 0xF3), Color32::from_rgb(0x29, 0x29, 0x29)),
-            ribbon: pick(dark, Color32::from_rgb(0xFF, 0xFF, 0xFF), Color32::from_rgb(0x33, 0x33, 0x33)),
-            ribbon_border: pick(dark, Color32::from_rgb(0xE3, 0xE3, 0xE3), Color32::from_rgb(0x40, 0x40, 0x40)),
-            text: pick(dark, Color32::from_rgb(0x24, 0x24, 0x24), Color32::from_rgb(0xEE, 0xEE, 0xEE)),
-            text_dim: pick(dark, Color32::from_rgb(0x61, 0x61, 0x61), Color32::from_rgb(0xB0, 0xB0, 0xB0)),
-            text_disabled: pick(dark, Color32::from_rgb(0xB0, 0xB0, 0xB0), Color32::from_rgb(0x70, 0x70, 0x70)),
-            accent: pick(dark, Color32::from_rgb(0x10, 0x7C, 0x41), Color32::from_rgb(0x5C, 0xC5, 0x87)),
-            accent_dark: pick(dark, Color32::from_rgb(0x0B, 0x5E, 0x31), Color32::from_rgb(0x3F, 0xA8, 0x6C)),
-            accent_soft: pick(dark, Color32::from_rgb(0xDF, 0xF1, 0xE6), Color32::from_rgb(0x23, 0x45, 0x31)),
-            hover: pick(dark, Color32::from_rgb(0xEB, 0xEB, 0xEB), Color32::from_rgb(0x42, 0x42, 0x42)),
-            pressed: pick(dark, Color32::from_rgb(0xDD, 0xDD, 0xDD), Color32::from_rgb(0x4D, 0x4D, 0x4D)),
-            separator: pick(dark, Color32::from_rgb(0xE0, 0xE0, 0xE0), Color32::from_rgb(0x48, 0x48, 0x48)),
+            window: pick(dark, Color32::from_rgb(0xF8, 0xFA, 0xFC), Color32::from_rgb(0x0F, 0x17, 0x2A)),
+            ribbon: pick(dark, Color32::from_rgb(0xFF, 0xFF, 0xFF), Color32::from_rgb(0x1E, 0x29, 0x3B)),
+            ribbon_border: pick(dark, Color32::from_rgb(0xE2, 0xE8, 0xF0), Color32::from_rgb(0x33, 0x41, 0x55)),
+            text: pick(dark, Color32::from_rgb(0x0F, 0x17, 0x2A), Color32::from_rgb(0xF8, 0xFA, 0xFC)),
+            text_dim: pick(dark, Color32::from_rgb(0x47, 0x55, 0x69), Color32::from_rgb(0xCB, 0xD5, 0xE1)),
+            text_disabled: pick(dark, Color32::from_rgb(0x94, 0xA3, 0xB8), Color32::from_rgb(0x64, 0x74, 0x8B)),
+            accent: pick(dark, Color32::from_rgb(0x04, 0x78, 0x57), Color32::from_rgb(0x34, 0xD3, 0x99)),
+            accent_dark: pick(dark, Color32::from_rgb(0x06, 0x5F, 0x46), Color32::from_rgb(0x10, 0xB9, 0x81)),
+            accent_soft: pick(dark, Color32::from_rgb(0xD1, 0xFA, 0xE5), Color32::from_rgb(0x06, 0x4E, 0x3B)),
+            hover: pick(dark, Color32::from_rgb(0xF1, 0xF5, 0xF9), Color32::from_rgb(0x23, 0x30, 0x43)),
+            pressed: pick(dark, Color32::from_rgb(0xE2, 0xE8, 0xF0), Color32::from_rgb(0x2E, 0x3C, 0x51)),
+            separator: pick(dark, Color32::from_rgb(0xE2, 0xE8, 0xF0), Color32::from_rgb(0x33, 0x41, 0x55)),
             grid_bg: Color32::WHITE,
-            desk: pick(dark, Color32::from_rgb(0xDE, 0xDE, 0xDE), Color32::from_rgb(0x3A, 0x3A, 0x3A)),
-            gridline: Color32::from_rgb(0xE1, 0xE1, 0xE1),
-            header_bg: pick(dark, Color32::from_rgb(0xF8, 0xF8, 0xF8), Color32::from_rgb(0x30, 0x30, 0x30)),
-            header_text: pick(dark, Color32::from_rgb(0x42, 0x42, 0x42), Color32::from_rgb(0xCC, 0xCC, 0xCC)),
-            header_line: pick(dark, Color32::from_rgb(0xD6, 0xD6, 0xD6), Color32::from_rgb(0x45, 0x45, 0x45)),
-            header_sel_bg: pick(dark, Color32::from_rgb(0xE1, 0xE1, 0xE1), Color32::from_rgb(0x45, 0x45, 0x45)),
-            header_sel_text: pick(dark, Color32::from_rgb(0x0B, 0x5E, 0x31), Color32::from_rgb(0x6F, 0xD3, 0x9A)),
-            header_all_bg: pick(dark, Color32::from_rgb(0xC8, 0xE6, 0xD3), Color32::from_rgb(0x2E, 0x55, 0x3E)),
-            sel_fill: pick(dark, Color32::from_rgba_unmultiplied(0x10, 0x7C, 0x41, 0x1C), Color32::from_rgba_unmultiplied(0x10, 0x7C, 0x41, 0x24)),
-            sel_border: Color32::from_rgb(0x10, 0x7C, 0x41),
-            input_bg: pick(dark, Color32::WHITE, Color32::from_rgb(0x1F, 0x1F, 0x1F)),
-            input_border: pick(dark, Color32::from_rgb(0xD1, 0xD1, 0xD1), Color32::from_rgb(0x50, 0x50, 0x50)),
-            tab_bar: pick(dark, Color32::from_rgb(0xF3, 0xF3, 0xF3), Color32::from_rgb(0x29, 0x29, 0x29)),
-            tab_active: pick(dark, Color32::WHITE, Color32::from_rgb(0x3A, 0x3A, 0x3A)),
-            status_bar: pick(dark, Color32::from_rgb(0xF3, 0xF3, 0xF3), Color32::from_rgb(0x29, 0x29, 0x29)),
+            desk: pick(dark, Color32::from_rgb(0xE2, 0xE8, 0xF0), Color32::from_rgb(0x1E, 0x29, 0x3B)),
+            gridline: Color32::from_rgb(0xE2, 0xE8, 0xF0),
+            header_bg: pick(dark, Color32::from_rgb(0xF8, 0xFA, 0xFC), Color32::from_rgb(0x1E, 0x29, 0x3B)),
+            header_text: pick(dark, Color32::from_rgb(0x33, 0x41, 0x55), Color32::from_rgb(0xCB, 0xD5, 0xE1)),
+            header_line: pick(dark, Color32::from_rgb(0xCB, 0xD5, 0xE1), Color32::from_rgb(0x33, 0x41, 0x55)),
+            header_sel_bg: pick(dark, Color32::from_rgb(0xE2, 0xE8, 0xF0), Color32::from_rgb(0x33, 0x41, 0x55)),
+            header_sel_text: pick(dark, Color32::from_rgb(0x06, 0x5F, 0x46), Color32::from_rgb(0x34, 0xD3, 0x99)),
+            header_all_bg: pick(dark, Color32::from_rgb(0xA7, 0xF3, 0xD0), Color32::from_rgb(0x06, 0x4E, 0x3B)),
+            sel_fill: pick(dark, Color32::from_rgba_unmultiplied(0x10, 0xB9, 0x81, 0x1C), Color32::from_rgba_unmultiplied(0x34, 0xD3, 0x99, 0x28)),
+            sel_border: Color32::from_rgb(0x04, 0x78, 0x57),
+            input_bg: pick(dark, Color32::WHITE, Color32::from_rgb(0x0F, 0x17, 0x2A)),
+            input_border: pick(dark, Color32::from_rgb(0xCB, 0xD5, 0xE1), Color32::from_rgb(0x33, 0x41, 0x55)),
+            tab_bar: pick(dark, Color32::from_rgb(0xF8, 0xFA, 0xFC), Color32::from_rgb(0x0F, 0x17, 0x2A)),
+            tab_active: pick(dark, Color32::WHITE, Color32::from_rgb(0x1E, 0x29, 0x3B)),
+            status_bar: pick(dark, Color32::from_rgb(0xF8, 0xFA, 0xFC), Color32::from_rgb(0x0F, 0x17, 0x2A)),
             cell_text: Color32::BLACK,
-            menu_bg: pick(dark, Color32::WHITE, Color32::from_rgb(0x30, 0x30, 0x30)),
-            shadow: pick(dark, Color32::from_black_alpha(40), Color32::from_black_alpha(90)),
-            danger: pick(dark, Color32::from_rgb(0xC4, 0x2B, 0x1C), Color32::from_rgb(0xFF, 0x95, 0x85)),
+            menu_bg: pick(dark, Color32::WHITE, Color32::from_rgb(0x1E, 0x29, 0x3B)),
+            shadow: pick(dark, Color32::from_black_alpha(30), Color32::from_black_alpha(85)),
+            danger: pick(dark, Color32::from_rgb(0xB9, 0x1C, 0x1C), Color32::from_rgb(0xFF, 0x95, 0x85)),
             error_check_green: pick(dark, Color32::from_rgb(0x1E, 0x8E, 0x3E), Color32::from_rgb(0x4C, 0xC2, 0x6B)),
             warning_fill: Color32::from_rgb(0xF2, 0xB7, 0x05),
             warning_ink: Color32::BLACK,
@@ -275,15 +276,15 @@ pub fn apply(ctx: &egui::Context, dark: bool) {
         v.widgets.hovered.weak_bg_fill = t.hover;
         v.widgets.active.weak_bg_fill = t.pressed;
         v.widgets.inactive.bg_stroke = Stroke::new(1.0, t.input_border);
-        // 0.37 raises the default widget corner radii; GridCraft keeps its 0.36 shape (#8617).
-        v.widgets.noninteractive.corner_radius = egui::CornerRadius::same(2);
-        v.widgets.inactive.corner_radius = egui::CornerRadius::same(2);
-        v.widgets.hovered.corner_radius = egui::CornerRadius::same(3);
-        v.widgets.active.corner_radius = egui::CornerRadius::same(2);
-        v.widgets.open.corner_radius = egui::CornerRadius::same(2);
-        v.window_corner_radius = egui::CornerRadius::same(10);
-        v.menu_corner_radius = egui::CornerRadius::same(8);
-        v.popup_shadow = egui::epaint::Shadow { offset: [0, 4], blur: 16, spread: 0, color: t.shadow };
+        // Modern Glassmorphic rounded geometry and soft ambient shadows
+        v.widgets.noninteractive.corner_radius = egui::CornerRadius::same(3);
+        v.widgets.inactive.corner_radius = egui::CornerRadius::same(3);
+        v.widgets.hovered.corner_radius = egui::CornerRadius::same(4);
+        v.widgets.active.corner_radius = egui::CornerRadius::same(3);
+        v.widgets.open.corner_radius = egui::CornerRadius::same(3);
+        v.window_corner_radius = egui::CornerRadius::same(12);
+        v.menu_corner_radius = egui::CornerRadius::same(10);
+        v.popup_shadow = egui::epaint::Shadow { offset: [0, 8], blur: 24, spread: 0, color: t.shadow };
         ctx.set_visuals_of(theme, v);
     }
     ctx.options_mut(|o| o.fallback_theme = egui::Theme::Light);
