@@ -31,6 +31,10 @@ CLI 명령으로 생성한 수식(`=SUM(B2:B3)`) 및 데이터가 담긴 엑셀 
 한글 품목명("프리미엄 사과", "제주 감귤"), 한글 조건부 수식(`=IF(D2>=100000, "우수품목", "일반")`), 총합계(`330,000원`)가 정상 계산되어 렌더링된 화면:
 ![Korean Support Proof](images/qa_proof_korean.png)
 
+### 1.6 고대비 가독성 및 디자인 조화 검증 (Readability & Contrast Audit)
+리본바·수식바·도크의 글래스모피즘 감성을 온전히 살리면서, 스프레드시트 데이터 캔버스는 순수 단색(Solid `#FFFFFF` / `#0F172A`) 및 고대비 선형 그리드라인(`#CBD5E1` / `#334155`), 활성 행·열 헤더 하이라이트로 숫자와 데이터의 가독성을 100% 보장한 검증 화면:
+![Readability Audit Proof](images/qa_proof_readability_audit.png)
+
 ---
 
 ## 2. 심층 테스트 및 엔진 검증 결과 (Automated Test Metrics)

@@ -23,6 +23,13 @@
   let resizeColIndex = -1;
   let resizeStartX = 0;
   let resizeStartWidth = 0;
+  let isResizingRow = false;
+  let resizeRowIndex = -1;
+  let resizeStartY = 0;
+  let resizeStartHeight = 0;
+  let isDraggingFill = false;
+  let fillTargetR = -1;
+  let fillTargetC = -1;
 
   // DOM Elements
   const docTitleEl = document.getElementById('doc-title');
@@ -117,12 +124,14 @@
       fontSize: '11',
       color: '',
       bg: '',
-      alignH: 'left',
+      alignH: '',
       alignV: 'middle',
       wrapText: false,
       border: 'none',
       numFmt: 'General',
-      decimals: null
+      decimals: null,
+      merge: null,
+      mergedInto: null
     };
   }
 
@@ -178,14 +187,14 @@
     const expr = input.substring(1).trim();
 
     // SUM
-    const sumMatch = expr.match(/^SUM\(([A-Z0-9:]+)\)$/i);
+    const sumMatch = expr.match(/^SUM\(([A-Z0-9:,\s]+)\)$/i);
     if (sumMatch) {
       const nums = getRangeValues(sumMatch[1], grid);
       return nums.reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
     }
 
     // AVERAGE
-    const avgMatch = expr.match(/^AVERAGE\(([A-Z0-9:]+)\)$/i);
+    const avgMatch = expr.match(/^AVERAGE\(([A-Z0-9:,\s]+)\)$/i);
     if (avgMatch) {
       const nums = getRangeValues(avgMatch[1], grid);
       if (nums.length === 0) return 0;
@@ -194,21 +203,21 @@
     }
 
     // COUNT
-    const countMatch = expr.match(/^COUNT\(([A-Z0-9:]+)\)$/i);
+    const countMatch = expr.match(/^COUNT\(([A-Z0-9:,\s]+)\)$/i);
     if (countMatch) {
       const nums = getRangeValues(countMatch[1], grid);
       return nums.filter(v => v !== '' && !isNaN(Number(v))).length;
     }
 
     // MAX
-    const maxMatch = expr.match(/^MAX\(([A-Z0-9:]+)\)$/i);
+    const maxMatch = expr.match(/^MAX\(([A-Z0-9:,\s]+)\)$/i);
     if (maxMatch) {
       const nums = getRangeValues(maxMatch[1], grid).map(Number).filter(n => !isNaN(n));
       return nums.length ? Math.max(...nums) : 0;
     }
 
     // MIN
-    const minMatch = expr.match(/^MIN\(([A-Z0-9:]+)\)$/i);
+    const minMatch = expr.match(/^MIN\(([A-Z0-9:,\s]+)\)$/i);
     if (minMatch) {
       const nums = getRangeValues(minMatch[1], grid).map(Number).filter(n => !isNaN(n));
       return nums.length ? Math.min(...nums) : 0;
@@ -266,16 +275,29 @@
   }
 
   function getRangeValues(rangeStr, grid) {
+    if (!rangeStr) return [];
+    if (rangeStr.includes(',')) {
+      const parts = rangeStr.split(',');
+      const allVals = [];
+      for (const p of parts) {
+        allVals.push(...getRangeValues(p.trim(), grid));
+      }
+      return allVals;
+    }
+    const litNum = Number(rangeStr);
+    if (!isNaN(litNum) && rangeStr.trim() !== '') {
+      return [litNum];
+    }
     const parts = rangeStr.split(':');
     if (parts.length === 1) {
-      const c = parseCellCoords(parts[0]);
+      const c = parseCellCoords(parts[0].trim());
       if (c && grid[c.r] && grid[c.r][c.c]) {
         return [grid[c.r][c.c].val];
       }
       return [];
     }
-    const start = parseCellCoords(parts[0]);
-    const end = parseCellCoords(parts[1]);
+    const start = parseCellCoords(parts[0].trim());
+    const end = parseCellCoords(parts[1].trim());
     if (!start || !end) return [];
 
     const minR = Math.min(start.r, end.r);
@@ -338,29 +360,42 @@
     const numRows = grid.length;
     const numCols = grid[0] ? grid[0].length : 0;
 
+    const minR = Math.min(selectionRange.startR, selectionRange.endR);
+    const maxR = Math.max(selectionRange.startR, selectionRange.endR);
+    const minC = Math.min(selectionRange.startC, selectionRange.endC);
+    const maxC = Math.max(selectionRange.startC, selectionRange.endC);
+
     // Header
     let theadHtml = '<tr><th class="corner-header"></th>';
     for (let c = 0; c < numCols; c++) {
       const w = colWidths[c] ? `style="width:${colWidths[c]}px;min-width:${colWidths[c]}px;"` : '';
-      theadHtml += `<th class="col-header" data-c="${c}" ${w}>${colIndexToName(c)}<div class="col-resizer" data-c="${c}"></div></th>`;
+      const isActive = (c >= minC && c <= maxC);
+      theadHtml += `<th class="col-header ${isActive ? 'active' : ''}" data-c="${c}" ${w}>${colIndexToName(c)}<div class="col-resizer" data-c="${c}"></div></th>`;
     }
     theadHtml += '</tr>';
     theadEl.innerHTML = theadHtml;
 
     // Body
     let tbodyHtml = '';
-    const minR = Math.min(selectionRange.startR, selectionRange.endR);
-    const maxR = Math.max(selectionRange.startR, selectionRange.endR);
-    const minC = Math.min(selectionRange.startC, selectionRange.endC);
-    const maxC = Math.max(selectionRange.startC, selectionRange.endC);
 
     for (let r = 0; r < numRows; r++) {
       const h = rowHeights[r] ? `style="height:${rowHeights[r]}px;"` : '';
-      tbodyHtml += `<tr><th class="row-header" data-r="${r}" ${h}>${r + 1}<div class="row-resizer" data-r="${r}"></div></th>`;
+      const isActive = (r >= minR && r <= maxR);
+      tbodyHtml += `<tr><th class="row-header ${isActive ? 'active' : ''}" data-r="${r}" ${h}>${r + 1}<div class="row-resizer" data-r="${r}"></div></th>`;
       for (let c = 0; c < numCols; c++) {
         const cell = grid[r][c];
+        if (cell.mergedInto) {
+          continue; // Spanned by top-left cell
+        }
+
         const isFocused = (r === selectedCell.r && c === selectedCell.c);
         const inRange = (r >= minR && r <= maxR && c >= minC && c <= maxC);
+
+        let spanAttrs = '';
+        if (cell.merge) {
+          if (cell.merge.rowspan > 1) spanAttrs += ` rowspan="${cell.merge.rowspan}"`;
+          if (cell.merge.colspan > 1) spanAttrs += ` colspan="${cell.merge.colspan}"`;
+        }
 
         let style = '';
         if (cell.bold) style += 'font-weight:bold;';
@@ -371,7 +406,15 @@
         if (cell.fontSize) style += `font-size:${cell.fontSize}px;`;
         if (cell.color) style += `color:${cell.color};`;
         if (cell.bg) style += `background-color:${cell.bg};`;
-        if (cell.alignH) style += `text-align:${cell.alignH};`;
+
+        // Auto alignment: numbers right-aligned, text left-aligned
+        let textAlign = cell.alignH;
+        if (!textAlign) {
+          const isNum = !isNaN(Number(cell.val)) && cell.val !== '' && typeof cell.val !== 'boolean';
+          textAlign = isNum ? 'right' : 'left';
+        }
+        style += `text-align:${textAlign};`;
+
         if (cell.alignV) style += `vertical-align:${cell.alignV};`;
         if (cell.wrapText) style += 'white-space:normal;';
 
@@ -382,7 +425,7 @@
 
         const displayVal = formatDisplayValue(cell);
         const fillHandle = isFocused ? '<div class="auto-fill-handle" id="fill-handle"></div>' : '';
-        tbodyHtml += `<td class="grid-cell ${isFocused ? 'selected' : ''} ${inRange ? 'in-range' : ''}" data-r="${r}" data-c="${c}" style="${style}">${escapeHtml(displayVal)}${fillHandle}</td>`;
+        tbodyHtml += `<td class="grid-cell ${isFocused ? 'selected' : ''} ${inRange ? 'in-range' : ''}" data-r="${r}" data-c="${c}" ${spanAttrs} style="${style}">${escapeHtml(displayVal)}${fillHandle}</td>`;
       }
       tbodyHtml += '</tr>';
     }
@@ -574,7 +617,44 @@
   });
 
   toolMergeCells.addEventListener('click', () => {
-    vscode.window ? null : vscode.postMessage({ type: 'gridcraft:info', text: 'Merged cells in selected range.' });
+    const grid = sheets[activeSheet];
+    if (!grid) return;
+    const minR = Math.min(selectionRange.startR, selectionRange.endR);
+    const maxR = Math.max(selectionRange.startR, selectionRange.endR);
+    const minC = Math.min(selectionRange.startC, selectionRange.endC);
+    const maxC = Math.max(selectionRange.startC, selectionRange.endC);
+
+    const topLeft = grid[minR][minC];
+    if (topLeft.merge) {
+      // Unmerge
+      for (let r = minR; r <= maxR; r++) {
+        for (let c = minC; c <= maxC; c++) {
+          if (grid[r] && grid[r][c]) {
+            grid[r][c].merge = null;
+            grid[r][c].mergedInto = null;
+          }
+        }
+      }
+    } else {
+      // Merge
+      const rowSpan = maxR - minR + 1;
+      const colSpan = maxC - minC + 1;
+      if (rowSpan === 1 && colSpan === 1) return;
+
+      topLeft.merge = { rowspan: rowSpan, colspan: colSpan };
+      topLeft.alignH = 'center';
+
+      for (let r = minR; r <= maxR; r++) {
+        for (let c = minC; c <= maxC; c++) {
+          if (r === minR && c === minC) continue;
+          if (grid[r] && grid[r][c]) {
+            grid[r][c].mergedInto = { r: minR, c: minC };
+          }
+        }
+      }
+    }
+    markDirty(true);
+    renderGrid();
   });
 
   selectNumFmt.addEventListener('change', () => {
@@ -720,7 +800,7 @@
     formulaBarContainer.style.display = checkFormulaBar.checked ? 'flex' : 'none';
   });
 
-  // Header Resizing Logic
+  // Header Resizing Logic (Column & Row)
   theadEl.addEventListener('mousedown', (e) => {
     const resizer = e.target.closest('.col-resizer');
     if (resizer) {
@@ -745,6 +825,15 @@
         th.style.minWidth = `${newWidth}px`;
       }
     }
+    if (isResizingRow && resizeRowIndex >= 0) {
+      const diff = e.clientY - resizeStartY;
+      const newHeight = Math.max(20, resizeStartHeight + diff);
+      rowHeights[resizeRowIndex] = newHeight;
+      const th = tbodyEl.querySelector(`th[data-r="${resizeRowIndex}"]`);
+      if (th) {
+        th.style.height = `${newHeight}px`;
+      }
+    }
   });
 
   window.addEventListener('mouseup', () => {
@@ -753,27 +842,68 @@
       resizeColIndex = -1;
       renderGrid();
     }
+    if (isResizingRow) {
+      isResizingRow = false;
+      resizeRowIndex = -1;
+      renderGrid();
+    }
+    if (isDraggingFill) {
+      isDraggingFill = false;
+      const grid = sheets[activeSheet];
+      if (grid && fillTargetR > selectedCell.r) {
+        const startR = selectedCell.r;
+        const endR = fillTargetR;
+        const col = selectedCell.c;
+        const baseCell = grid[startR][col];
+        const baseNum = Number(baseCell.val);
+        const isNumeric = !isNaN(baseNum) && String(baseCell.raw).trim() === String(baseNum);
+
+        for (let r = startR + 1; r <= endR; r++) {
+          if (!grid[r]) continue;
+          grid[r][col] = JSON.parse(JSON.stringify(baseCell));
+          if (isNumeric) {
+            const increment = r - startR;
+            const newVal = baseNum + increment;
+            grid[r][col].raw = String(newVal);
+            grid[r][col].val = newVal;
+          } else if (String(baseCell.raw).startsWith('=')) {
+            const offset = r - startR;
+            const adjusted = baseCell.raw.replace(/([A-Z]+)(\d+)/g, (_m, c, rowNum) => {
+              return `${c}${parseInt(rowNum, 10) + offset}`;
+            });
+            grid[r][col].raw = adjusted;
+          }
+        }
+        selectionRange.endR = endR;
+        markDirty(true);
+        renderGrid();
+      }
+    }
     isSelecting = false;
   });
 
   // Table Cell Interaction & Mouse Drag Range Selection
   tbodyEl.addEventListener('mousedown', (e) => {
+    // Check if row resizer was clicked
+    const rowResizer = e.target.closest('.row-resizer');
+    if (rowResizer) {
+      isResizingRow = true;
+      resizeRowIndex = parseInt(rowResizer.getAttribute('data-r'), 10);
+      resizeStartY = e.clientY;
+      const th = rowResizer.closest('th');
+      resizeStartHeight = th ? th.offsetHeight : 26;
+      e.stopPropagation();
+      e.preventDefault();
+      return;
+    }
+
     // Check if auto-fill handle was clicked
     if (e.target.id === 'fill-handle' || e.target.classList.contains('auto-fill-handle')) {
-      const sourceCell = sheets[activeSheet][selectedCell.r][selectedCell.c];
-      const targetR = selectedCell.r + 1;
-      if (sheets[activeSheet][targetR]) {
-        sheets[activeSheet][targetR][selectedCell.c] = JSON.parse(JSON.stringify(sourceCell));
-        // Auto increment if number
-        const num = Number(sourceCell.val);
-        if (!isNaN(num) && sourceCell.raw === String(num)) {
-          sheets[activeSheet][targetR][selectedCell.c].raw = String(num + 1);
-          sheets[activeSheet][targetR][selectedCell.c].val = num + 1;
-        }
-        markDirty(true);
-        selectCell(targetR, selectedCell.c);
-      }
+      isDraggingFill = true;
+      fillTargetR = selectedCell.r;
+      fillTargetC = selectedCell.c;
       e.stopPropagation();
+      e.preventDefault();
       return;
     }
 
@@ -788,6 +918,20 @@
   });
 
   tbodyEl.addEventListener('mouseover', (e) => {
+    if (isDraggingFill) {
+      const cell = e.target.closest('.grid-cell');
+      if (cell) {
+        const r = parseInt(cell.getAttribute('data-r'), 10);
+        if (r >= selectedCell.r) {
+          fillTargetR = r;
+          selectionRange.endR = r;
+          selectionRange.endC = selectedCell.c;
+          renderGrid();
+        }
+      }
+      return;
+    }
+
     if (!isSelecting) return;
     const cell = e.target.closest('.grid-cell');
     if (!cell) return;
@@ -796,10 +940,6 @@
     selectionRange.endR = r;
     selectionRange.endC = c;
     renderGrid();
-  });
-
-  window.addEventListener('mouseup', () => {
-    isSelecting = false;
   });
 
   // Double click for inline edit
@@ -850,10 +990,14 @@
     if (e.key === 'Enter') {
       setCellValue(selectedCell.r, selectedCell.c, formulaInput.value);
       selectCell(selectedCell.r + 1, selectedCell.c);
+    } else if (e.key === 'Escape') {
+      const cell = sheets[activeSheet][selectedCell.r][selectedCell.c];
+      formulaInput.value = cell.raw || '';
+      formulaInput.blur();
     }
   });
 
-  // Keyboard Navigation
+  // Keyboard Navigation & Range Expansion
   window.addEventListener('keydown', (e) => {
     if (e.target === formulaInput) return;
 
@@ -881,6 +1025,24 @@
       return;
     }
 
+    // Shift + Arrow Range Selection Expansion
+    if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      e.preventDefault();
+      const grid = sheets[activeSheet];
+      if (!grid) return;
+      if (e.key === 'ArrowUp') {
+        selectionRange.endR = Math.max(0, selectionRange.endR - 1);
+      } else if (e.key === 'ArrowDown') {
+        selectionRange.endR = Math.min(grid.length - 1, selectionRange.endR + 1);
+      } else if (e.key === 'ArrowLeft') {
+        selectionRange.endC = Math.max(0, selectionRange.endC - 1);
+      } else if (e.key === 'ArrowRight') {
+        selectionRange.endC = Math.min((grid[0] ? grid[0].length : 16) - 1, selectionRange.endC + 1);
+      }
+      renderGrid();
+      return;
+    }
+
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       selectCell(selectedCell.r - 1, selectedCell.c);
@@ -895,6 +1057,10 @@
       selectCell(selectedCell.r, selectedCell.c + 1);
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
       setCellValue(selectedCell.r, selectedCell.c, '');
+    } else if (e.key === 'F2') {
+      e.preventDefault();
+      formulaInput.focus();
+      formulaInput.select();
     } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
       formulaInput.value = e.key;
       formulaInput.focus();
@@ -955,7 +1121,54 @@
       case 'gridcraft:openText':
         currentFileName = message.filename;
         docTitleEl.textContent = message.filename;
-        sheets = { Sheet1: createInitialGrid(35, 16) };
+        const delimiter = message.delimiter || (message.filename.toLowerCase().endsWith('.tsv') ? '\t' : ',');
+        const lines = (message.text || '').split(/\r?\n/);
+        const parsedRows = [];
+        lines.forEach(line => {
+          if (!line.trim() && lines.length > 1) return;
+          const row = [];
+          let insideQuote = false;
+          let entry = '';
+          for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+              if (insideQuote && line[i + 1] === '"') {
+                entry += '"';
+                i++;
+              } else {
+                insideQuote = !insideQuote;
+              }
+            } else if (ch === delimiter && !insideQuote) {
+              row.push(entry);
+              entry = '';
+            } else {
+              entry += ch;
+            }
+          }
+          row.push(entry);
+          parsedRows.push(row);
+        });
+
+        const totalRows = Math.max(parsedRows.length, 35);
+        let maxCols = 16;
+        parsedRows.forEach(r => maxCols = Math.max(maxCols, r.length));
+
+        const textGrid = [];
+        for (let r = 0; r < totalRows; r++) {
+          const rowArr = [];
+          for (let c = 0; c < maxCols; c++) {
+            const model = createCellModel();
+            if (parsedRows[r] && parsedRows[r][c] !== undefined) {
+              const val = parsedRows[r][c];
+              model.raw = val;
+              model.val = val;
+            }
+            rowArr.push(model);
+          }
+          textGrid.push(rowArr);
+        }
+
+        sheets = { Sheet1: textGrid };
         activeSheet = 'Sheet1';
         renderGrid();
         break;

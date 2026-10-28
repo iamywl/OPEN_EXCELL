@@ -25,12 +25,14 @@
   --emerald-glass-glow: 0 0 16px rgba(16, 185, 129, 0.35);
   --emerald-pill-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.9));
   
-  --grid-border: rgba(226, 232, 240, 0.6);
-  --grid-header-bg: rgba(248, 250, 252, 0.75);
-  --grid-cell-bg: rgba(255, 255, 255, 0.55);
-  --grid-cell-hover: rgba(241, 245, 249, 0.85);
+  --grid-border: #cbd5e1;
+  --grid-header-bg: #f1f5f9;
+  --grid-header-active-bg: #e2e8f0;
+  --grid-header-active-color: #059669;
+  --grid-cell-bg: #ffffff;
+  --grid-cell-hover: #f8fafc;
   --selection-border: #10b981;
-  --selection-bg: rgba(16, 185, 129, 0.12);
+  --selection-bg: rgba(16, 185, 129, 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -58,12 +60,14 @@
     --emerald-glass-glow: 0 0 20px rgba(16, 185, 129, 0.45);
     --emerald-pill-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.85), rgba(5, 150, 105, 0.85));
     
-    --grid-border: rgba(51, 65, 85, 0.45);
-    --grid-header-bg: rgba(15, 23, 42, 0.85);
-    --grid-cell-bg: rgba(30, 41, 59, 0.45);
-    --grid-cell-hover: rgba(51, 65, 85, 0.65);
+    --grid-border: #334155;
+    --grid-header-bg: #1e293b;
+    --grid-header-active-bg: #334155;
+    --grid-header-active-color: #34d399;
+    --grid-cell-bg: #0f172a;
+    --grid-cell-hover: #1e293b;
     --selection-border: #34d399;
-    --selection-bg: rgba(16, 185, 129, 0.22);
+    --selection-bg: rgba(16, 185, 129, 0.16);
   }
 }
 
@@ -524,12 +528,13 @@ body.gridcraft-root {
   background: var(--glass-card-hover);
 }
 
-/* Glass Spreadsheet Grid */
+/* High-Performance, High-Contrast Data Canvas with Ultra-Glass Shell */
 .grid-container {
   flex: 1;
   position: relative;
   overflow: hidden;
-  background: transparent;
+  background: var(--grid-cell-bg);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
 .grid-scroll {
@@ -543,7 +548,9 @@ body.gridcraft-root {
   border-spacing: 0;
   table-layout: fixed;
   font-size: 12px;
-  background: transparent;
+  background: var(--grid-cell-bg);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
 }
 
 .grid-table th, .grid-table td {
@@ -560,8 +567,6 @@ body.gridcraft-root {
   width: 48px;
   min-width: 48px;
   background: var(--grid-header-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid var(--grid-border);
   border-bottom: 1px solid var(--grid-border);
   position: sticky;
@@ -574,8 +579,6 @@ body.gridcraft-root {
   min-width: 95px;
   width: 105px;
   background: var(--grid-header-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   color: var(--text-muted);
   font-weight: 700;
   text-align: center;
@@ -583,8 +586,14 @@ body.gridcraft-root {
   top: 0;
   z-index: 5;
   letter-spacing: 0.3px;
-  position: relative;
   user-select: none;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.col-header.active {
+  background: var(--grid-header-active-bg);
+  color: var(--grid-header-active-color);
+  border-bottom: 2px solid var(--selection-border);
 }
 
 .col-resizer {
@@ -605,16 +614,21 @@ body.gridcraft-root {
   width: 48px;
   min-width: 48px;
   background: var(--grid-header-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   color: var(--text-muted);
   font-weight: 700;
   text-align: center;
   position: sticky;
   left: 0;
   z-index: 4;
-  position: relative;
   user-select: none;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.row-header.active {
+  background: var(--grid-header-active-bg);
+  color: var(--grid-header-active-color);
+  border-right: 2px solid var(--selection-border);
 }
 
 .row-resizer {
@@ -636,33 +650,58 @@ body.gridcraft-root {
   color: var(--text-main);
   cursor: cell;
   outline: none;
-  transition: background 0.12s ease;
+  transition: background 0.08s ease;
   position: relative;
+  font-variant-numeric: tabular-nums;
 }
 
 .auto-fill-handle {
   position: absolute;
   bottom: -3px;
   right: -3px;
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   background: var(--selection-border);
   border: 1px solid #ffffff;
   cursor: crosshair;
   z-index: 10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .grid-cell:hover {
   background: var(--grid-cell-hover);
 }
 
+.grid-cell.in-range {
+  background: var(--selection-bg);
+}
+
 .grid-cell.selected {
   outline: 2px solid var(--selection-border) !important;
   outline-offset: -2px;
   background: var(--selection-bg) !important;
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
   z-index: 2;
   font-weight: 600;
+}
+
+/* Inline Cell Editor */
+.cell-inline-editor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 2px solid var(--selection-border);
+  background: var(--grid-cell-bg);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: inherit;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 7px;
+  outline: none;
+  box-sizing: border-box;
+  z-index: 20;
 }
 
 /* Glass Dock Footer & Tabs */

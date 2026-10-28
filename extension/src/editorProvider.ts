@@ -114,20 +114,61 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
                 const cellAddr = XLSX.utils.encode_cell({ r, c });
                 const cell = ws[cellAddr];
                 let raw = '';
-                let val = '';
+                let val: any = '';
                 if (cell) {
                   if (cell.f) {
                     raw = '=' + cell.f;
                     val = cell.v !== undefined ? cell.v : cell.w || '';
                   } else {
                     raw = cell.v !== undefined ? String(cell.v) : '';
-                    val = raw;
+                    val = cell.v !== undefined ? cell.v : '';
                   }
                 }
-                row.push({ raw, val, bold: false, italic: false, align: 'left' });
+                row.push({
+                  raw,
+                  val,
+                  bold: false,
+                  italic: false,
+                  underline: false,
+                  strike: false,
+                  fontFamily: 'Calibri',
+                  fontSize: '11',
+                  color: '',
+                  bg: '',
+                  alignH: '',
+                  alignV: 'middle',
+                  wrapText: false,
+                  border: 'none',
+                  numFmt: typeof val === 'number' ? 'Number' : 'General',
+                  decimals: null,
+                  merge: null,
+                  mergedInto: null,
+                });
               }
               grid.push(row);
             }
+
+            // Decode XLSX merges
+            if (ws['!merges']) {
+              for (const m of ws['!merges']) {
+                const startR = m.s.r;
+                const startC = m.s.c;
+                const rowSpan = m.e.r - m.s.r + 1;
+                const colSpan = m.e.c - m.s.c + 1;
+                if (grid[startR] && grid[startR][startC]) {
+                  grid[startR][startC].merge = { rowspan: rowSpan, colspan: colSpan };
+                }
+                for (let r = m.s.r; r <= m.e.r; r++) {
+                  for (let c = m.s.c; c <= m.e.c; c++) {
+                    if (r === startR && c === startC) continue;
+                    if (grid[r] && grid[r][c]) {
+                      grid[r][c].mergedInto = { r: startR, c: startC };
+                    }
+                  }
+                }
+              }
+            }
+
             sheetsData[sheetName] = grid;
           }
 
@@ -175,32 +216,45 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
 
               for (const [sheetName, grid] of Object.entries(sheets)) {
                 const ws: XLSX.WorkSheet = {};
+                const merges: XLSX.Range[] = [];
                 let maxR = 0;
                 let maxC = 0;
 
                 (grid as any[][]).forEach((row, r) => {
                   row.forEach((cell, c) => {
-                    if (cell && (cell.raw || cell.val)) {
-                      maxR = Math.max(maxR, r);
-                      maxC = Math.max(maxC, c);
-                      const addr = XLSX.utils.encode_cell({ r, c });
-                      if (String(cell.raw).startsWith('=')) {
-                        ws[addr] = {
-                          t: typeof cell.val === 'number' ? 'n' : 's',
-                          f: String(cell.raw).substring(1),
-                          v: cell.val,
-                        };
-                      } else {
-                        const num = Number(cell.raw);
-                        if (!isNaN(num) && cell.raw !== '') {
-                          ws[addr] = { t: 'n', v: num };
+                    if (cell) {
+                      if (cell.merge) {
+                        merges.push({
+                          s: { r, c },
+                          e: { r: r + cell.merge.rowspan - 1, c: c + cell.merge.colspan - 1 }
+                        });
+                      }
+                      if (cell.raw || cell.val) {
+                        maxR = Math.max(maxR, r);
+                        maxC = Math.max(maxC, c);
+                        const addr = XLSX.utils.encode_cell({ r, c });
+                        if (String(cell.raw).startsWith('=')) {
+                          ws[addr] = {
+                            t: typeof cell.val === 'number' ? 'n' : 's',
+                            f: String(cell.raw).substring(1),
+                            v: cell.val,
+                          };
                         } else {
-                          ws[addr] = { t: 's', v: String(cell.raw) };
+                          const num = Number(cell.raw);
+                          if (!isNaN(num) && cell.raw !== '') {
+                            ws[addr] = { t: 'n', v: num };
+                          } else {
+                            ws[addr] = { t: 's', v: String(cell.raw) };
+                          }
                         }
                       }
                     }
                   });
                 });
+
+                if (merges.length > 0) {
+                  ws['!merges'] = merges;
+                }
 
                 ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: Math.max(maxR, 5), c: Math.max(maxC, 5) } });
                 XLSX.utils.book_append_sheet(wb, ws, sheetName);
