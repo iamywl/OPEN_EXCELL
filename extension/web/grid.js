@@ -17,6 +17,12 @@
   let isDirty = false;
   let clipboardCell = null;
   let isCut = false;
+  let colWidths = {};
+  let rowHeights = {};
+  let isResizingCol = false;
+  let resizeColIndex = -1;
+  let resizeStartX = 0;
+  let resizeStartWidth = 0;
 
   // DOM Elements
   const docTitleEl = document.getElementById('doc-title');
@@ -335,7 +341,8 @@
     // Header
     let theadHtml = '<tr><th class="corner-header"></th>';
     for (let c = 0; c < numCols; c++) {
-      theadHtml += `<th class="col-header" data-c="${c}">${colIndexToName(c)}</th>`;
+      const w = colWidths[c] ? `style="width:${colWidths[c]}px;min-width:${colWidths[c]}px;"` : '';
+      theadHtml += `<th class="col-header" data-c="${c}" ${w}>${colIndexToName(c)}<div class="col-resizer" data-c="${c}"></div></th>`;
     }
     theadHtml += '</tr>';
     theadEl.innerHTML = theadHtml;
@@ -348,7 +355,8 @@
     const maxC = Math.max(selectionRange.startC, selectionRange.endC);
 
     for (let r = 0; r < numRows; r++) {
-      tbodyHtml += `<tr><th class="row-header" data-r="${r}">${r + 1}</th>`;
+      const h = rowHeights[r] ? `style="height:${rowHeights[r]}px;"` : '';
+      tbodyHtml += `<tr><th class="row-header" data-r="${r}" ${h}>${r + 1}<div class="row-resizer" data-r="${r}"></div></th>`;
       for (let c = 0; c < numCols; c++) {
         const cell = grid[r][c];
         const isFocused = (r === selectedCell.r && c === selectedCell.c);
@@ -373,7 +381,8 @@
         else if (cell.border === 'bottom') style += 'border-bottom:2px solid #000;';
 
         const displayVal = formatDisplayValue(cell);
-        tbodyHtml += `<td class="grid-cell ${isFocused ? 'selected' : ''} ${inRange ? 'in-range' : ''}" data-r="${r}" data-c="${c}" style="${style}">${escapeHtml(displayVal)}</td>`;
+        const fillHandle = isFocused ? '<div class="auto-fill-handle" id="fill-handle"></div>' : '';
+        tbodyHtml += `<td class="grid-cell ${isFocused ? 'selected' : ''} ${inRange ? 'in-range' : ''}" data-r="${r}" data-c="${c}" style="${style}">${escapeHtml(displayVal)}${fillHandle}</td>`;
       }
       tbodyHtml += '</tr>';
     }
@@ -711,8 +720,63 @@
     formulaBarContainer.style.display = checkFormulaBar.checked ? 'flex' : 'none';
   });
 
+  // Header Resizing Logic
+  theadEl.addEventListener('mousedown', (e) => {
+    const resizer = e.target.closest('.col-resizer');
+    if (resizer) {
+      isResizingCol = true;
+      resizeColIndex = parseInt(resizer.getAttribute('data-c'), 10);
+      resizeStartX = e.clientX;
+      const th = resizer.closest('th');
+      resizeStartWidth = th ? th.offsetWidth : 100;
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (isResizingCol && resizeColIndex >= 0) {
+      const diff = e.clientX - resizeStartX;
+      const newWidth = Math.max(40, resizeStartWidth + diff);
+      colWidths[resizeColIndex] = newWidth;
+      const th = theadEl.querySelector(`th[data-c="${resizeColIndex}"]`);
+      if (th) {
+        th.style.width = `${newWidth}px`;
+        th.style.minWidth = `${newWidth}px`;
+      }
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isResizingCol) {
+      isResizingCol = false;
+      resizeColIndex = -1;
+      renderGrid();
+    }
+    isSelecting = false;
+  });
+
   // Table Cell Interaction & Mouse Drag Range Selection
   tbodyEl.addEventListener('mousedown', (e) => {
+    // Check if auto-fill handle was clicked
+    if (e.target.id === 'fill-handle' || e.target.classList.contains('auto-fill-handle')) {
+      const sourceCell = sheets[activeSheet][selectedCell.r][selectedCell.c];
+      const targetR = selectedCell.r + 1;
+      if (sheets[activeSheet][targetR]) {
+        sheets[activeSheet][targetR][selectedCell.c] = JSON.parse(JSON.stringify(sourceCell));
+        // Auto increment if number
+        const num = Number(sourceCell.val);
+        if (!isNaN(num) && sourceCell.raw === String(num)) {
+          sheets[activeSheet][targetR][selectedCell.c].raw = String(num + 1);
+          sheets[activeSheet][targetR][selectedCell.c].val = num + 1;
+        }
+        markDirty(true);
+        selectCell(targetR, selectedCell.c);
+      }
+      e.stopPropagation();
+      return;
+    }
+
     const cell = e.target.closest('.grid-cell');
     if (!cell) return;
     const r = parseInt(cell.getAttribute('data-r'), 10);
