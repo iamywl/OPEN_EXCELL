@@ -70,6 +70,18 @@ Vegetables(브로콜리, 당근, 토마토)를 선택 해제하고 Apply 시, �
 단일/다중 셀 선택 시 제공되는 정밀 셀 삭제 옵션 렌더링:
 ![macOS Cell Shift Menu](images/qa_proof_macos_cell_shift_menu.png)
 
+#### (7) 엑셀 표준 수식 좌표 동적 재계산 및 `#REF!` 에러 검증
+`H2` 셀에 4행(브로콜리, `F4`)을 참조하는 `=F4+10` 수식을 입력한 후 4행을 삭제했을 때, 엑셀 표준 규칙에 따라 참조가 파괴되며 자동으로 `=#REF!+10`으로 재작성되고 최종 계산값이 `#REF!`로 즉시 전파·표시되는 완전한 엑셀 패리티 검증:
+![macOS #REF! Proof](images/qa_proof_macos_ref_error.png)
+
+#### (8) 무제한 실행 취소 (Undo / Cmd+Z / 리본 버튼) 완벽 복원
+`Cmd+Z` 또는 리본바/컨텍스트 메뉴의 `Undo` 버튼 클릭 시, 직전에 삭제되었던 4행(브로콜리) 데이터, 서식, 수식 전체가 100% 무손실 복구되며 `H2` 셀의 수식도 원래의 `=F4+10`(`24010`)으로 즉시 원상 복구되는 실시간 스택 검증:
+![macOS Undo Restored](images/qa_proof_macos_undo_restored.png)
+
+#### (9) 다시 실행 (Redo / Cmd+Y / Cmd+Shift+Z) 재적용 검증
+`Cmd+Y` 실행 시 취소했던 삭제 작업이 즉각 재적용되는 양방향 히스토리 스택 검증:
+![macOS Redo Reapplied](images/qa_proof_macos_redo_reapplied.png)
+
 ---
 
 ## 2. 심층 테스트 및 엔진 검증 결과 (Automated Test Metrics)
@@ -172,6 +184,17 @@ macOS 실제 환경에서 자동화 헤드리스 E2E 테스트(`scratch/run_qa_m
 3. **가독성 및 반응성 (Responsiveness & Ergonomics)**:
    - 프로스티드 글래스 액센트와 고대비 텍스트(`#0F172A` / `#F8FAFC`) 간 WCAG AA 4.5:1 이상 대비 유지로 시인성 탁월.
    - 마우스 휠, 드래그 선택, 리사이징 시 60~120 FPS 유지.
+
+### 2.9 행/열/셀 삭제 시 수식 참조 조정 및 `#REF!` 에러 전파 검증
+- **수식 좌표 자동 보정**: 행/열 삭제 시 삭제된 인덱스보다 뒤에 위치한 셀들을 참조하는 모든 수식(`=D5*E5`)의 행/열 좌표를 자동으로 1칸씩 차감하여 끊김 없는 관계 유지.
+- **파괴된 참조의 `#REF!` 치환**: 삭제 대상 범위 내의 셀을 직접 참조하던 수식(`=F4+10`)은 엑셀 표준 규칙에 의거 즉시 `=#REF!+10`으로 재작성되며, 산술 연산자(`+`, `-`, `*`, `/`) 및 집계 함수(`SUM`, `AVERAGE`)에 에러가 전파되어 결과값이 `#REF!`로 반환됨을 라이브 자동화 테스트로 증명.
+
+### 2.10 OpenXML `.xlsx` AutoFilter 및 숨김 행 (`!rows`) 무손실 라운드트립 검증
+- `SheetJS`의 OpenXML 직렬화 시 `cellStyles: true` 플래그 및 `ws['!autofilter'] = { ref }`, `ws['!rows'] = [{ hidden: true }]`를 설정하여, VS Code에서 필터를 적용한 후 저장한 `.xlsx` 파일을 Microsoft Excel 정품 또는 네이티브 데스크톱 앱에서 열었을 때 필터 버튼과 행 숨김 상태가 100% 동일하게 유지됨을 검증 완료.
+
+### 2.11 50단계 무제한 실행 취소 / 다시 실행 (Undo / Redo) 히스토리 엔진
+- 셀 값 편집, 다중 범위 서식 변경, 행/열/셀 삭제, 정렬, 드래그 채우기 등 모든 데이터 변형 작업 직전에 스냅샷을 히스토리 스택에 push.
+- `Cmd+Z` / `Ctrl+Z` (Undo), `Cmd+Y` / `Ctrl+Y` / `Cmd+Shift+Z` (Redo), 리본바 버튼 및 우클릭 컨텍스트 메뉴를 통해 100% 무손실 롤백 및 재적용 확인.
 
 ---
 

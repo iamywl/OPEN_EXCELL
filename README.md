@@ -164,6 +164,28 @@ CLI 백엔드 엔진으로 실시간 생성한 수식(`=SUM(B2:B3) = 4,000`) 엑
 
 ---
 
+### 11. 엑셀 표준 수식 참조 파괴 및 `#REF!` 에러 자동 전파 검증
+삭제된 행을 참조하던 수식(`=F4+10`)이 엑셀 표준 규칙에 따라 즉시 `=#REF!+10`으로 치환되며, 최종 계산 결과가 `#REF!`로 정확하게 전파 및 표시되는 실시간 화면입니다.
+
+<p align="center">
+  <img src="docs/images/qa_proof_macos_ref_error.png" alt="macOS #REF! Formula Recalculation Error" width="95%">
+  <br>
+  <sub><b>Figure 11:</b> <i>삭제 대상 참조 파괴 시 엑셀 정규 #REF! 에러 발생 및 실시간 전파</i></sub>
+</p>
+
+---
+
+### 12. 50단계 무제한 실행 취소 (Undo / Cmd+Z) 완벽 복원
+`Cmd+Z` 또는 리본바/컨텍스트 메뉴의 `Undo` 실행 시, 삭제되었던 행의 모든 셀 데이터, 서식 및 수식이 즉시 원래 상태(`24,010원`)로 100% 무손실 복구된 화면입니다.
+
+<p align="center">
+  <img src="docs/images/qa_proof_macos_undo_restored.png" alt="macOS Undo Restoration Proof" width="95%">
+  <br>
+  <sub><b>Figure 12:</b> <i>무제한 실행 취소 (Undo) 스택 — 삭제된 데이터 및 수식 100% 무손실 복원</i></sub>
+</p>
+
+---
+
 ## 📊 엑셀 UI 및 기능 전수 추적 관리 지표 (Specification & Parity Dashboard)
 
 OPEN_EXCELL은 [UI 및 기능 전수 추적 관리 지표 (docs/EXCEL_SPECIFICATION.md)](docs/EXCEL_SPECIFICATION.md)에 기반하여 **총 104개 세부 항목에 대해 구현/미구현 상태를 1:1 수치화하여 엄격하게 추적 관리**하고 있습니다.

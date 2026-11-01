@@ -98,7 +98,7 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
           });
         } else {
           // Parse binary XLSX/XLS workbook
-          const wb = XLSX.read(fileData, { type: 'buffer', cellFormula: true });
+          const wb = XLSX.read(fileData, { type: 'buffer', cellFormula: true, cellStyles: true });
           const sheetsData: Record<string, any[][]> = {};
 
           for (const sheetName of wb.SheetNames) {
@@ -177,6 +177,7 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
             filename,
             sheets: sheetsData,
             sheetNames: wb.SheetNames,
+            hasFilter: wb.SheetNames.some(s => !!wb.Sheets[s]['!autofilter']),
           });
         }
       } catch (err: any) {
@@ -254,6 +255,18 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
 
                 if (merges.length > 0) {
                   ws['!merges'] = merges;
+                }
+
+                if (message.isFilterActive) {
+                  ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: Math.max(maxR, 1), c: Math.max(maxC, 1) } }) };
+                }
+
+                if (message.hiddenRows && Array.isArray(message.hiddenRows) && message.hiddenRows.length > 0) {
+                  const rowsMeta: any[] = [];
+                  message.hiddenRows.forEach((r: number) => {
+                    rowsMeta[r] = { hidden: true };
+                  });
+                  ws['!rows'] = rowsMeta;
                 }
 
                 ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: Math.max(maxR, 5), c: Math.max(maxC, 5) } });
@@ -387,6 +400,16 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
     <div class="ribbon-panels">
       <!-- HOME PANEL -->
       <div class="tab-panel active" id="tab-home">
+        <!-- History / Undo Redo -->
+        <div class="tool-section">
+          <div class="tool-group">
+            <button id="tool-undo" class="tool-btn icon-btn" title="Undo (Ctrl+Z / Cmd+Z)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg></button>
+            <button id="tool-redo" class="tool-btn icon-btn" title="Redo (Ctrl+Y / Cmd+Y)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></button>
+          </div>
+          <span class="section-label">Undo</span>
+        </div>
+        <div class="tool-divider"></div>
+
         <!-- Clipboard -->
         <div class="tool-section">
           <div class="tool-group">
@@ -665,6 +688,9 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
 
   <!-- Context Menu -->
   <div class="context-menu hidden" id="context-menu">
+    <div class="context-item" data-action="undo">Undo (Ctrl+Z)</div>
+    <div class="context-item" data-action="redo">Redo (Ctrl+Y)</div>
+    <div class="context-divider"></div>
     <div class="context-item" data-action="cut">Cut (Ctrl+X)</div>
     <div class="context-item" data-action="copy">Copy (Ctrl+C)</div>
     <div class="context-item" data-action="paste">Paste (Ctrl+V)</div>

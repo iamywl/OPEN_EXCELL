@@ -78,6 +78,145 @@
   const formulaSignatureHint = document.getElementById('formula-signature-hint');
   const sheetTabContextMenu = document.getElementById('sheet-tab-context-menu');
 
+  // History & Undo / Redo Manager (Ctrl/Cmd+Z, Ctrl/Cmd+Y)
+  const undoStack = [];
+  const redoStack = [];
+  const MAX_HISTORY = 50;
+
+  function pushHistory() {
+    undoStack.push(JSON.stringify({
+      sheets,
+      activeSheet,
+      activeFilters,
+      isFilterActive
+    }));
+    if (undoStack.length > MAX_HISTORY) undoStack.shift();
+    redoStack.length = 0;
+  }
+
+  function undo() {
+    if (undoStack.length === 0) return;
+    redoStack.push(JSON.stringify({
+      sheets,
+      activeSheet,
+      activeFilters,
+      isFilterActive
+    }));
+    const state = JSON.parse(undoStack.pop());
+    sheets = state.sheets;
+    activeSheet = state.activeSheet;
+    activeFilters = state.activeFilters || {};
+    isFilterActive = !!state.isFilterActive;
+    markDirty(true);
+    recalculateFormulas();
+    renderSheetTabs();
+    renderGrid();
+  }
+
+  function redo() {
+    if (redoStack.length === 0) return;
+    undoStack.push(JSON.stringify({
+      sheets,
+      activeSheet,
+      activeFilters,
+      isFilterActive
+    }));
+    const state = JSON.parse(redoStack.pop());
+    sheets = state.sheets;
+    activeSheet = state.activeSheet;
+    activeFilters = state.activeFilters || {};
+    isFilterActive = !!state.isFilterActive;
+    markDirty(true);
+    recalculateFormulas();
+    renderSheetTabs();
+    renderGrid();
+  }
+
+  // Formula Reference Adjusters on Deletions
+  function adjustFormulasOnRowDeletion(sheetGrid, delMinR, delCount) {
+    const delMaxR = delMinR + delCount - 1;
+    sheetGrid.forEach(row => {
+      row.forEach(cell => {
+        if (!cell || !cell.raw || !String(cell.raw).startsWith('=')) return;
+        cell.raw = cell.raw.replace(/(\$?[A-Z]+)(\$?)(\d+)/g, (match, colPart, rowDollar, rowStr) => {
+          const rowNum = parseInt(rowStr, 10) - 1;
+          if (rowNum >= delMinR && rowNum <= delMaxR) {
+            return '#REF!';
+          }
+          if (rowNum > delMaxR) {
+            return `${colPart}${rowDollar}${rowNum - delCount + 1}`;
+          }
+          return match;
+        });
+      });
+    });
+  }
+
+  function adjustFormulasOnColDeletion(sheetGrid, delMinC, delCount) {
+    const delMaxC = delMinC + delCount - 1;
+    sheetGrid.forEach(row => {
+      row.forEach(cell => {
+        if (!cell || !cell.raw || !String(cell.raw).startsWith('=')) return;
+        cell.raw = cell.raw.replace(/(\$?)([A-Z]+)(\$?)(\d+)/g, (match, colDollar, colStr, rowDollar, rowStr) => {
+          const colNum = colNameToIndex(colStr);
+          if (colNum >= delMinC && colNum <= delMaxC) {
+            return '#REF!';
+          }
+          if (colNum > delMaxC) {
+            const newColStr = colIndexToName(colNum - delCount);
+            return `${colDollar}${newColStr}${rowDollar}${rowStr}`;
+          }
+          return match;
+        });
+      });
+    });
+  }
+
+  function adjustFormulasOnCellShiftUp(sheetGrid, minR, maxR, minC, maxC) {
+    const count = maxR - minR + 1;
+    sheetGrid.forEach(row => {
+      row.forEach(cell => {
+        if (!cell || !cell.raw || !String(cell.raw).startsWith('=')) return;
+        cell.raw = cell.raw.replace(/(\$?[A-Z]+)(\$?)(\d+)/g, (match, colPart, rowDollar, rowStr) => {
+          const refC = colNameToIndex(colPart.replace('$', ''));
+          const refR = parseInt(rowStr, 10) - 1;
+          if (refC >= minC && refC <= maxC) {
+            if (refR >= minR && refR <= maxR) return '#REF!';
+            if (refR > maxR) return `${colPart}${rowDollar}${refR - count + 1}`;
+          }
+          return match;
+        });
+      });
+    });
+  }
+
+  function adjustFormulasOnCellShiftLeft(sheetGrid, minR, maxR, minC, maxC) {
+    const count = maxC - minC + 1;
+    sheetGrid.forEach(row => {
+      row.forEach(cell => {
+        if (!cell || !cell.raw || !String(cell.raw).startsWith('=')) return;
+        cell.raw = cell.raw.replace(/(\$?)([A-Z]+)(\$?)(\d+)/g, (match, colDollar, colStr, rowDollar, rowStr) => {
+          const refC = colNameToIndex(colStr);
+          const refR = parseInt(rowStr, 10) - 1;
+          if (refR >= minR && refR <= maxR) {
+            if (refC >= minC && refC <= maxC) return '#REF!';
+            if (refC > maxC) {
+              const newColStr = colIndexToName(refC - count);
+              return `${colDollar}${newColStr}${rowDollar}${rowStr}`;
+            }
+          }
+          return match;
+        });
+      });
+    });
+  }
+
+  // History Controls
+  const toolUndo = document.getElementById('tool-undo');
+  const toolRedo = document.getElementById('tool-redo');
+  toolUndo?.addEventListener('click', undo);
+  toolRedo?.addEventListener('click', redo);
+
   // Stats
   const statCount = document.getElementById('stat-count');
   const statSum = document.getElementById('stat-sum');
@@ -205,7 +344,8 @@
   }
 
   function parseCellCoords(ref) {
-    const match = ref.toUpperCase().match(/^([A-Z]+)(\d+)$/);
+    const clean = ref.toUpperCase().replace(/\$/g, '').trim();
+    const match = clean.match(/^([A-Z]+)(\d+)$/);
     if (!match) return null;
     return {
       c: colNameToIndex(match[1]),
@@ -364,6 +504,9 @@
     }
 
     if (!expr) return '';
+    if (expr === '#REF!' || expr.startsWith('#REF!')) {
+      return '#REF!';
+    }
 
     // Literal Quoted String: "Hello"
     if (expr.startsWith('"') && expr.endsWith('"') && expr.length >= 2) {
@@ -442,6 +585,9 @@
       else if ((expr[i] === '+' || expr[i] === '-') && !quote && paren === 0 && i > 0 && !/[+\-*\/^]/.test(expr[i - 1])) {
         const left = evaluateFormula(expr.substring(0, i), grid, depth + 1);
         const right = evaluateFormula(expr.substring(i + 1), grid, depth + 1);
+        if (left === '#REF!' || right === '#REF!') return '#REF!';
+        if (String(left).startsWith('#')) return left;
+        if (String(right).startsWith('#')) return right;
         return expr[i] === '+' ? (parseFloat(left) || 0) + (parseFloat(right) || 0) : (parseFloat(left) || 0) - (parseFloat(right) || 0);
       }
     }
@@ -453,11 +599,16 @@
       else if (expr[i] === ')' && !quote) paren++;
       else if (expr[i] === '(' && !quote) paren--;
       else if ((expr[i] === '*' || expr[i] === '/' || expr[i] === '^') && !quote && paren === 0) {
-        const left = parseFloat(evaluateFormula(expr.substring(0, i), grid, depth + 1)) || 0;
-        const right = parseFloat(evaluateFormula(expr.substring(i + 1), grid, depth + 1)) || 0;
-        if (expr[i] === '*') return left * right;
-        if (expr[i] === '/') return right !== 0 ? left / right : '#DIV/0!';
-        if (expr[i] === '^') return Math.pow(left, right);
+        const left = evaluateFormula(expr.substring(0, i), grid, depth + 1);
+        const right = evaluateFormula(expr.substring(i + 1), grid, depth + 1);
+        if (left === '#REF!' || right === '#REF!') return '#REF!';
+        if (String(left).startsWith('#')) return left;
+        if (String(right).startsWith('#')) return right;
+        const numL = parseFloat(left) || 0;
+        const numR = parseFloat(right) || 0;
+        if (expr[i] === '*') return numL * numR;
+        if (expr[i] === '/') return numR !== 0 ? numL / numR : '#DIV/0!';
+        if (expr[i] === '^') return Math.pow(numL, numR);
       }
     }
 
@@ -792,16 +943,24 @@
   }
 
   function recalculateAll(grid) {
-    for (let r = 0; r < grid.length; r++) {
-      for (let c = 0; c < grid[r].length; c++) {
-        const cell = grid[r][c];
-        if (cell.raw && String(cell.raw).startsWith('=')) {
-          cell.val = evaluateFormula(cell.raw, grid);
-        } else {
-          cell.val = cell.raw;
+    if (!grid) return;
+    for (let pass = 0; pass < 2; pass++) {
+      for (let r = 0; r < grid.length; r++) {
+        for (let c = 0; c < grid[r].length; c++) {
+          const cell = grid[r][c];
+          if (cell.raw && String(cell.raw).startsWith('=')) {
+            cell.val = evaluateFormula(cell.raw, grid);
+          } else {
+            cell.val = cell.raw;
+          }
         }
       }
     }
+  }
+
+  function recalculateFormulas() {
+    const grid = sheets[activeSheet];
+    if (grid) recalculateAll(grid);
   }
 
   function formatDisplayValue(cell) {
@@ -997,6 +1156,7 @@
   function applyToSelectedCells(fn) {
     const grid = sheets[activeSheet];
     if (!grid) return;
+    pushHistory();
     const minR = Math.min(selectionRange.startR, selectionRange.endR);
     const maxR = Math.max(selectionRange.startR, selectionRange.endR);
     const minC = Math.min(selectionRange.startC, selectionRange.endC);
@@ -1010,15 +1170,19 @@
       }
     }
     markDirty(true);
+    recalculateAll(grid);
     renderGrid();
   }
 
   function setCellValue(r, c, rawValue) {
     const grid = sheets[activeSheet];
     if (!grid || !grid[r] || !grid[r][c]) return;
+    if (grid[r][c].raw === rawValue) return;
 
+    pushHistory();
     grid[r][c].raw = rawValue;
     markDirty(true);
+    recalculateAll(grid);
     renderGrid();
   }
 
@@ -1042,10 +1206,25 @@
   function saveCurrentWorkbook() {
     const grid = sheets[activeSheet];
     const csvContent = gridToCsv(grid);
+    const hiddenRows = [];
+    if (isFilterActive && Object.keys(activeFilters).length > 0 && grid) {
+      for (let r = 1; r < grid.length; r++) {
+        for (const [colIdx, allowedSet] of Object.entries(activeFilters)) {
+          const cellVal = String(grid[r][colIdx] ? grid[r][colIdx].val : '');
+          const allowed = (allowedSet instanceof Set) ? allowedSet.has(cellVal) : (Array.isArray(allowedSet) ? allowedSet.includes(cellVal) : true);
+          if (!allowed) {
+            hiddenRows.push(r);
+            break;
+          }
+        }
+      }
+    }
     vscode.postMessage({
       type: 'gridcraft:saveWorkbook',
       sheets: sheets,
-      csvText: csvContent
+      csvText: csvContent,
+      isFilterActive: isFilterActive,
+      hiddenRows: hiddenRows
     });
     markDirty(false);
   }
@@ -1261,6 +1440,8 @@
   // Sort
   toolSortAsc.addEventListener('click', () => {
     const grid = sheets[activeSheet];
+    if (!grid || grid.length < 2) return;
+    pushHistory();
     const col = selectedCell.c;
     const header = grid[0];
     const rows = grid.slice(1);
@@ -1276,6 +1457,8 @@
 
   toolSortDesc.addEventListener('click', () => {
     const grid = sheets[activeSheet];
+    if (!grid || grid.length < 2) return;
+    pushHistory();
     const col = selectedCell.c;
     const header = grid[0];
     const rows = grid.slice(1);
@@ -1366,6 +1549,8 @@
 
   btnFilterSortAsc.addEventListener('click', () => {
     const grid = sheets[activeSheet];
+    if (!grid || grid.length < 2) return;
+    pushHistory();
     const col = currentFilterCol;
     const header = grid[0];
     const rows = grid.slice(1);
@@ -1382,6 +1567,8 @@
 
   btnFilterSortDesc.addEventListener('click', () => {
     const grid = sheets[activeSheet];
+    if (!grid || grid.length < 2) return;
+    pushHistory();
     const col = currentFilterCol;
     const header = grid[0];
     const rows = grid.slice(1);
@@ -1618,6 +1805,7 @@
       isDraggingFill = false;
       const grid = sheets[activeSheet];
       if (grid && fillTargetR > selectedCell.r) {
+        pushHistory();
         const startR = selectedCell.r;
         const endR = fillTargetR;
         const col = selectedCell.c;
@@ -1635,14 +1823,16 @@
             grid[r][col].val = newVal;
           } else if (String(baseCell.raw).startsWith('=')) {
             const offset = r - startR;
-            const adjusted = baseCell.raw.replace(/([A-Z]+)(\d+)/g, (_m, c, rowNum) => {
-              return `${c}${parseInt(rowNum, 10) + offset}`;
+            const adjusted = baseCell.raw.replace(/(\$?[A-Z]+)(\$?)(\d+)/g, (_m, colPart, dollar, rowNum) => {
+              if (dollar) return _m;
+              return `${colPart}${parseInt(rowNum, 10) + offset}`;
             });
             grid[r][col].raw = adjusted;
           }
         }
         selectionRange.endR = endR;
         markDirty(true);
+        recalculateAll(grid);
         renderGrid();
       }
     }
@@ -1720,6 +1910,27 @@
   // Context Menu
   tbodyEl.addEventListener('contextmenu', (e) => {
     e.preventDefault();
+    const cell = e.target.closest('.grid-cell');
+    if (cell) {
+      const r = parseInt(cell.getAttribute('data-r'), 10);
+      const c = parseInt(cell.getAttribute('data-c'), 10);
+      const minR = Math.min(selectionRange.startR, selectionRange.endR);
+      const maxR = Math.max(selectionRange.startR, selectionRange.endR);
+      const minC = Math.min(selectionRange.startC, selectionRange.endC);
+      const maxC = Math.max(selectionRange.startC, selectionRange.endC);
+      const inRange = (r >= minR && r <= maxR && c >= minC && c <= maxC);
+      if (!inRange) {
+        selectCell(r, c);
+      }
+    }
+    const rowHeader = e.target.closest('.row-header');
+    if (rowHeader) {
+      const r = parseInt(rowHeader.getAttribute('data-r'), 10);
+      selectedCell = { r, c: 0 };
+      const numCols = (sheets[activeSheet] && sheets[activeSheet][0]) ? sheets[activeSheet][0].length : 15;
+      selectionRange = { startR: r, startC: 0, endR: r, endC: numCols - 1 };
+      renderGrid();
+    }
     contextMenu.style.top = `${e.clientY}px`;
     contextMenu.style.left = `${e.clientX}px`;
     contextMenu.classList.remove('hidden');
@@ -1740,32 +1951,46 @@
     const minC = Math.min(selectionRange.startC, selectionRange.endC);
     const maxC = Math.max(selectionRange.startC, selectionRange.endC);
 
-    if (action === 'cut') {
+    if (action === 'undo') {
+      undo();
+      return;
+    } else if (action === 'redo') {
+      redo();
+      return;
+    } else if (action === 'cut') {
       toolCut.click();
     } else if (action === 'copy') {
       toolCopy.click();
     } else if (action === 'paste') {
       toolPaste.click();
     } else if (action === 'insert-row') {
+      pushHistory();
       const newRow = Array.from({ length: grid[0].length }, () => createCellModel());
       grid.splice(selectedCell.r + 1, 0, newRow);
     } else if (action === 'delete-row') {
       if (grid.length > 1) {
+        pushHistory();
         const delCount = maxR - minR + 1;
+        adjustFormulasOnRowDeletion(grid, minR, delCount);
         grid.splice(minR, delCount);
         selectedCell.r = Math.min(minR, grid.length - 1);
         selectionRange = { startR: selectedCell.r, startC: selectedCell.c, endR: selectedCell.r, endC: selectedCell.c };
       }
     } else if (action === 'insert-col') {
+      pushHistory();
       grid.forEach(row => row.splice(selectedCell.c + 1, 0, createCellModel()));
     } else if (action === 'delete-col') {
       if (grid[0] && grid[0].length > 1) {
+        pushHistory();
         const delCount = maxC - minC + 1;
+        adjustFormulasOnColDeletion(grid, minC, delCount);
         grid.forEach(row => row.splice(minC, delCount));
         selectedCell.c = Math.min(minC, grid[0].length - 1);
         selectionRange = { startR: selectedCell.r, startC: selectedCell.c, endR: selectedCell.r, endC: selectedCell.c };
       }
     } else if (action === 'delete-cells-up') {
+      pushHistory();
+      adjustFormulasOnCellShiftUp(grid, minR, maxR, minC, maxC);
       const count = maxR - minR + 1;
       for (let c = minC; c <= maxC; c++) {
         for (let r = minR; r < grid.length - count; r++) {
@@ -1776,6 +2001,8 @@
         }
       }
     } else if (action === 'delete-cells-left') {
+      pushHistory();
+      adjustFormulasOnCellShiftLeft(grid, minR, maxR, minC, maxC);
       const count = maxC - minC + 1;
       for (let r = minR; r <= maxR; r++) {
         const row = grid[r];
@@ -1787,11 +2014,12 @@
         }
       }
     } else if (action === 'clear') {
+      pushHistory();
       applyToSelectedCells(c => { c.raw = ''; c.val = ''; });
       formulaInput.value = '';
     }
     markDirty(true);
-    recalculateFormulas();
+    recalculateAll(grid);
     renderGrid();
   });
 
@@ -1799,21 +2027,24 @@
   toolAddRow?.addEventListener('click', () => {
     const grid = sheets[activeSheet];
     if (!grid) return;
+    pushHistory();
     const newRow = Array.from({ length: grid[0].length }, () => createCellModel());
     grid.splice(selectedCell.r + 1, 0, newRow);
     markDirty(true);
-    recalculateFormulas();
+    recalculateAll(grid);
     renderGrid();
   });
 
   toolDelRow?.addEventListener('click', () => {
     const grid = sheets[activeSheet];
     if (grid && grid.length > 1) {
+      pushHistory();
+      adjustFormulasOnRowDeletion(grid, selectedCell.r, 1);
       grid.splice(selectedCell.r, 1);
       selectedCell.r = Math.min(selectedCell.r, grid.length - 1);
       selectionRange = { startR: selectedCell.r, startC: selectedCell.c, endR: selectedCell.r, endC: selectedCell.c };
       markDirty(true);
-      recalculateFormulas();
+      recalculateAll(grid);
       renderGrid();
     }
   });
@@ -1821,29 +2052,33 @@
   toolAddCol?.addEventListener('click', () => {
     const grid = sheets[activeSheet];
     if (!grid) return;
+    pushHistory();
     grid.forEach(row => row.splice(selectedCell.c + 1, 0, createCellModel()));
     markDirty(true);
-    recalculateFormulas();
+    recalculateAll(grid);
     renderGrid();
   });
 
   toolDelCol?.addEventListener('click', () => {
     const grid = sheets[activeSheet];
     if (grid && grid[0] && grid[0].length > 1) {
+      pushHistory();
+      adjustFormulasOnColDeletion(grid, selectedCell.c, 1);
       grid.forEach(row => row.splice(selectedCell.c, 1));
       selectedCell.c = Math.min(selectedCell.c, grid[0].length - 1);
       selectionRange = { startR: selectedCell.r, startC: selectedCell.c, endR: selectedCell.r, endC: selectedCell.c };
       markDirty(true);
-      recalculateFormulas();
+      recalculateAll(grid);
       renderGrid();
     }
   });
 
   toolClear?.addEventListener('click', () => {
+    pushHistory();
     applyToSelectedCells(c => { c.raw = ''; c.val = ''; });
     formulaInput.value = '';
     markDirty(true);
-    recalculateFormulas();
+    recalculateAll(sheets[activeSheet]);
     renderGrid();
   });
 
@@ -1866,6 +2101,20 @@
   window.addEventListener('keydown', (e) => {
     if (e.target === formulaInput) return;
 
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        redo();
+      } else {
+        undo();
+      }
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+      e.preventDefault();
+      redo();
+      return;
+    }
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
       saveCurrentWorkbook();
@@ -1940,9 +2189,6 @@
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
       applyToSelectedCells(c => { c.raw = ''; c.val = ''; });
       formulaInput.value = '';
-      markDirty(true);
-      recalculateFormulas();
-      renderGrid();
     } else if (e.key === 'F2') {
       e.preventDefault();
       formulaInput.focus();
@@ -2072,6 +2318,16 @@
         sheets = message.sheets || { Sheet1: createInitialGrid(35, 16) };
         const sheetNames = message.sheetNames || Object.keys(sheets);
         activeSheet = sheetNames[0] || 'Sheet1';
+        if (message.hasFilter) {
+          isFilterActive = true;
+          toolToggleFilter?.classList.add('active');
+        } else {
+          isFilterActive = false;
+          toolToggleFilter?.classList.remove('active');
+        }
+        activeFilters = {};
+        undoStack.length = 0;
+        redoStack.length = 0;
         renderSheetTabs();
         renderGrid();
         break;
