@@ -674,7 +674,10 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
     <div class="context-item" data-action="insert-col">Insert Column</div>
     <div class="context-item" data-action="delete-col">Delete Column</div>
     <div class="context-divider"></div>
-    <div class="context-item" data-action="clear">Clear Contents</div>
+    <div class="context-item" data-action="delete-cells-up">Delete Cells (Shift Up)</div>
+    <div class="context-item" data-action="delete-cells-left">Delete Cells (Shift Left)</div>
+    <div class="context-divider"></div>
+    <div class="context-item" data-action="clear">Clear Contents (Delete)</div>
   </div>
 
   <script nonce="${nonce}" src="${scriptUri}"></script>

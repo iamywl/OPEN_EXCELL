@@ -1,7 +1,7 @@
 // OPEN_EXCELL - Complete Microsoft Excel Feature Parity Controller
 (function () {
   // @ts-ignore
-  const vscode = acquireVsCodeApi();
+  const vscode = typeof acquireVsCodeApi !== 'undefined' ? acquireVsCodeApi() : { postMessage: () => {} };
 
   // State
   let currentFileName = 'Workbook.xlsx';
@@ -1732,20 +1732,118 @@
   contextMenu.addEventListener('click', (e) => {
     const action = e.target.getAttribute('data-action');
     if (!action) return;
-    if (action === 'insert-row') {
-      const grid = sheets[activeSheet];
+    const grid = sheets[activeSheet];
+    if (!grid || !grid.length) return;
+
+    const minR = Math.min(selectionRange.startR, selectionRange.endR);
+    const maxR = Math.max(selectionRange.startR, selectionRange.endR);
+    const minC = Math.min(selectionRange.startC, selectionRange.endC);
+    const maxC = Math.max(selectionRange.startC, selectionRange.endC);
+
+    if (action === 'cut') {
+      toolCut.click();
+    } else if (action === 'copy') {
+      toolCopy.click();
+    } else if (action === 'paste') {
+      toolPaste.click();
+    } else if (action === 'insert-row') {
       const newRow = Array.from({ length: grid[0].length }, () => createCellModel());
       grid.splice(selectedCell.r + 1, 0, newRow);
     } else if (action === 'delete-row') {
-      sheets[activeSheet].splice(selectedCell.r, 1);
+      if (grid.length > 1) {
+        const delCount = maxR - minR + 1;
+        grid.splice(minR, delCount);
+        selectedCell.r = Math.min(minR, grid.length - 1);
+        selectionRange = { startR: selectedCell.r, startC: selectedCell.c, endR: selectedCell.r, endC: selectedCell.c };
+      }
     } else if (action === 'insert-col') {
-      sheets[activeSheet].forEach(row => row.splice(selectedCell.c + 1, 0, createCellModel()));
+      grid.forEach(row => row.splice(selectedCell.c + 1, 0, createCellModel()));
     } else if (action === 'delete-col') {
-      sheets[activeSheet].forEach(row => row.splice(selectedCell.c, 1));
+      if (grid[0] && grid[0].length > 1) {
+        const delCount = maxC - minC + 1;
+        grid.forEach(row => row.splice(minC, delCount));
+        selectedCell.c = Math.min(minC, grid[0].length - 1);
+        selectionRange = { startR: selectedCell.r, startC: selectedCell.c, endR: selectedCell.r, endC: selectedCell.c };
+      }
+    } else if (action === 'delete-cells-up') {
+      const count = maxR - minR + 1;
+      for (let c = minC; c <= maxC; c++) {
+        for (let r = minR; r < grid.length - count; r++) {
+          grid[r][c] = grid[r + count][c];
+        }
+        for (let r = Math.max(0, grid.length - count); r < grid.length; r++) {
+          grid[r][c] = createCellModel();
+        }
+      }
+    } else if (action === 'delete-cells-left') {
+      const count = maxC - minC + 1;
+      for (let r = minR; r <= maxR; r++) {
+        const row = grid[r];
+        for (let c = minC; c < row.length - count; c++) {
+          row[c] = row[c + count];
+        }
+        for (let c = Math.max(0, row.length - count); c < row.length; c++) {
+          row[c] = createCellModel();
+        }
+      }
     } else if (action === 'clear') {
       applyToSelectedCells(c => { c.raw = ''; c.val = ''; });
+      formulaInput.value = '';
     }
     markDirty(true);
+    recalculateFormulas();
+    renderGrid();
+  });
+
+  // Ribbon Cell Operations (+Row, -Row, +Col, -Col, Clear)
+  toolAddRow?.addEventListener('click', () => {
+    const grid = sheets[activeSheet];
+    if (!grid) return;
+    const newRow = Array.from({ length: grid[0].length }, () => createCellModel());
+    grid.splice(selectedCell.r + 1, 0, newRow);
+    markDirty(true);
+    recalculateFormulas();
+    renderGrid();
+  });
+
+  toolDelRow?.addEventListener('click', () => {
+    const grid = sheets[activeSheet];
+    if (grid && grid.length > 1) {
+      grid.splice(selectedCell.r, 1);
+      selectedCell.r = Math.min(selectedCell.r, grid.length - 1);
+      selectionRange = { startR: selectedCell.r, startC: selectedCell.c, endR: selectedCell.r, endC: selectedCell.c };
+      markDirty(true);
+      recalculateFormulas();
+      renderGrid();
+    }
+  });
+
+  toolAddCol?.addEventListener('click', () => {
+    const grid = sheets[activeSheet];
+    if (!grid) return;
+    grid.forEach(row => row.splice(selectedCell.c + 1, 0, createCellModel()));
+    markDirty(true);
+    recalculateFormulas();
+    renderGrid();
+  });
+
+  toolDelCol?.addEventListener('click', () => {
+    const grid = sheets[activeSheet];
+    if (grid && grid[0] && grid[0].length > 1) {
+      grid.forEach(row => row.splice(selectedCell.c, 1));
+      selectedCell.c = Math.min(selectedCell.c, grid[0].length - 1);
+      selectionRange = { startR: selectedCell.r, startC: selectedCell.c, endR: selectedCell.r, endC: selectedCell.c };
+      markDirty(true);
+      recalculateFormulas();
+      renderGrid();
+    }
+  });
+
+  toolClear?.addEventListener('click', () => {
+    applyToSelectedCells(c => { c.raw = ''; c.val = ''; });
+    formulaInput.value = '';
+    markDirty(true);
+    recalculateFormulas();
     renderGrid();
   });
 
@@ -1840,7 +1938,11 @@
       e.preventDefault();
       selectCell(selectedCell.r, selectedCell.c + 1);
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
-      setCellValue(selectedCell.r, selectedCell.c, '');
+      applyToSelectedCells(c => { c.raw = ''; c.val = ''; });
+      formulaInput.value = '';
+      markDirty(true);
+      recalculateFormulas();
+      renderGrid();
     } else if (e.key === 'F2') {
       e.preventDefault();
       formulaInput.focus();

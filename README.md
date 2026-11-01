@@ -120,6 +120,50 @@ CLI 백엔드 엔진으로 실시간 생성한 수식(`=SUM(B2:B3) = 4,000`) 엑
 
 ---
 
+### 7. macOS 전용 라이브 구동: AutoFilter 드롭다운 & 고유값 필터링
+열 헤더 `▾` 클릭 시 호출되는 프로스티드 글래스(`backdrop-filter: blur(28px)`) 필터 모달. 고유값(Fruits, Vegetables) 체크박스 검색 및 정렬 팝업 화면입니다.
+
+<p align="center">
+  <img src="docs/images/qa_proof_macos_filter_dropdown.png" alt="macOS AutoFilter Dropdown Menu" width="95%">
+  <br>
+  <sub><b>Figure 7:</b> <i>macOS AutoFilter 프로스티드 글래스 드롭다운 메뉴 (고유값 추출 체크박스 & 검색)</i></sub>
+</p>
+
+---
+
+### 8. AutoFilter 적용 결과: 실시간 행 숨김 (Row Hiding)
+`Vegetables` 제외 후 `Fruits`만 선택 적용 시, 비일치 행들이 실시간으로 매끄럽게 숨겨지고 액티브 필터 인디케이터가 표시된 화면입니다.
+
+<p align="center">
+  <img src="docs/images/qa_proof_macos_filtered_result.png" alt="macOS Filtered Rows Result" width="95%">
+  <br>
+  <sub><b>Figure 8:</b> <i>AutoFilter 적용 결과 — 비일치 행 실시간 숨김 및 활성 필터 헤더</i></sub>
+</p>
+
+---
+
+### 9. 셀 및 행/열 삭제 (Cell & Row Deletion) 컨텍스트 메뉴
+우클릭 시 제공되는 엑셀 표준 삭제 인터랙션: `Delete Row`, `Delete Column`, `Delete Cells (Shift Up)`, `Delete Cells (Shift Left)`, `Clear Contents`.
+
+<p align="center">
+  <img src="docs/images/qa_proof_macos_context_menu_delete.png" alt="macOS Context Menu Cell Deletion" width="95%">
+  <br>
+  <sub><b>Figure 9:</b> <i>우클릭 컨텍스트 메뉴 — 행/열 삭제 및 셀 시프트 삭제 옵션</i></sub>
+</p>
+
+---
+
+### 10. 행/셀 삭제 실행 후 실시간 시프트 및 수식 재계산 완료
+3행(Broccoli) 삭제 시 행이 제거되고 하단 행들이 자동 상향 정렬되며, 합계 및 의존 수식이 오차 없이 실시간 재계산된 화면입니다.
+
+<p align="center">
+  <img src="docs/images/qa_proof_macos_after_deletion.png" alt="macOS After Deletion and Recalculation" width="95%">
+  <br>
+  <sub><b>Figure 10:</b> <i>행 삭제 실행 후 실시간 시프트 및 수식 의존성 자동 재계산 완료</i></sub>
+</p>
+
+---
+
 ## 📊 엑셀 UI 및 기능 전수 추적 관리 지표 (Specification & Parity Dashboard)
 
 OPEN_EXCELL은 [UI 및 기능 전수 추적 관리 지표 (docs/EXCEL_SPECIFICATION.md)](docs/EXCEL_SPECIFICATION.md)에 기반하여 **총 104개 세부 항목에 대해 구현/미구현 상태를 1:1 수치화하여 엄격하게 추적 관리**하고 있습니다.
