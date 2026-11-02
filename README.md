@@ -11,7 +11,7 @@
 <p align="center">
   <img alt="Platforms" src="https://img.shields.io/badge/Platforms-macOS%20(Metal)%20%7C%20Windows%20(DirectX)%20%7C%20CLI%20%7C%20MCP-107c41?style=for-the-badge&logo=apple&logoColor=white">
   <img alt="VS Code Extension" src="https://img.shields.io/badge/VS%20Code-Full%20Excel%20Editor-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white">
-  <img alt="Parity" src="https://img.shields.io/badge/Excel%20Parity-95.7%25%20Achieved-brightgreen?style=for-the-badge">
+  <img alt="Parity" src="https://img.shields.io/badge/Excel%20Parity-95.2%25%20Achieved-brightgreen?style=for-the-badge">
   <img alt="Design" src="https://img.shields.io/badge/Design-Ultra%20Glassmorphism-emerald?style=for-the-badge">
 </p>
 
@@ -186,31 +186,97 @@ CLI 백엔드 엔진으로 실시간 생성한 수식(`=SUM(B2:B3) = 4,000`) 엑
 
 ---
 
+### 13. 수식 자동완성 드롭다운 & 매개변수 시그니처 힌트 툴팁
+수식 입력줄(`fx`)에 함수 입력 시 실시간으로 함수 카탈로그와 매개변수 인자 설명 툴팁이 팝업된 화면입니다.
+
+<p align="center">
+  <img src="docs/images/qa_proof_macos_formula_autocomplete.png" alt="macOS Formula Autocomplete and Tooltip" width="95%">
+  <br>
+  <sub><b>Figure 13:</b> <i>수식 자동완성 드롭다운 및 시그니처 힌트 툴팁 (=VLOOKUP)</i></sub>
+</p>
+
+---
+
+### 14. Formulas 리본 패널: 50대 엔터프라이즈 함수 팔레트
+상단 Formulas 탭 클릭 시 전환되는 전문 함수 라이브러리(`VLOOKUP`, `INDEX/MATCH`, `IFERROR`, `CONCAT` 등) 리본 툴바입니다.
+
+<p align="center">
+  <img src="docs/images/qa_proof_macos_formulas_ribbon.png" alt="macOS Formulas Ribbon Tab" width="95%">
+  <br>
+  <sub><b>Figure 14:</b> <i>Formulas 리본 탭 — 50대 핵심 업무용 함수 팔레트 바로가기</i></sub>
+</p>
+
+---
+
+### 15. Insert 탭 & HTML5 Canvas 인터랙티브 차트 모달 오버레이
+데이터 영역 선택 후 컬럼 차트 삽입 시 렌더링되는 인터랙티브 차트 시각화 모달입니다.
+
+<p align="center">
+  <img src="docs/images/qa_proof_macos_insert_chart.png" alt="macOS Insert Interactive Canvas Chart" width="95%">
+  <br>
+  <sub><b>Figure 15:</b> <i>Insert 탭 — 인터랙티브 HTML5 Canvas 막대 차트 오버레이 모달</i></sub>
+</p>
+
+---
+
+### 16. 전역 찾기 및 바꾸기 (Find & Replace) 플로팅 글래스 바
+`Ctrl+F` / `Cmd+F` 및 `Ctrl+H` 입력 시 호출되는 실시간 매칭 카운터와 탐색 바입니다.
+
+<p align="center">
+  <img src="docs/images/qa_proof_macos_find_replace.png" alt="macOS Floating Find and Replace Bar" width="95%">
+  <br>
+  <sub><b>Figure 16:</b> <i>전역 찾기 및 바꾸기 플로팅 글래스 바 (실시간 일치 건수 카운터)</i></sub>
+</p>
+
+---
+
+### 17. 다중 워크시트 관리 (Multi-Sheet Tabs) 및 우클릭 메뉴
+하단 시트 탭 바에서 탭 더블클릭 이름 변경 및 우클릭 시트 복제/삭제 메뉴 화면입니다.
+
+<p align="center">
+  <img src="docs/images/qa_proof_macos_sheet_tabs.png" alt="macOS Multi-Sheet Tabs and Context Menu" width="95%">
+  <br>
+  <sub><b>Figure 17:</b> <i>하단 다중 시트 탭 관리 및 시트 탭 컨텍스트 메뉴</i></sub>
+</p>
+
+---
+
+### 18. 다중 셀 범위 선택 & 상태 표시줄 실시간 통계
+다중 셀 블록 선택 시 하단 상태 표시줄에 `Count`, `Sum`, `Average`, `Min`, `Max`가 실시간 자동 계산되는 화면입니다.
+
+<p align="center">
+  <img src="docs/images/qa_proof_macos_status_stats.png" alt="macOS Status Bar Real-time Stats" width="95%">
+  <br>
+  <sub><b>Figure 18:</b> <i>다중 셀 사각형 드래그 선택 및 상태 표시줄 실시간 통계 집계</i></sub>
+</p>
+
+---
+
 ## 📊 엑셀 UI 및 기능 전수 추적 관리 지표 (Specification & Parity Dashboard)
 
 OPEN_EXCELL은 [UI 및 기능 전수 추적 관리 지표 (docs/EXCEL_SPECIFICATION.md)](docs/EXCEL_SPECIFICATION.md)에 기반하여 **총 104개 세부 항목에 대해 구현/미구현 상태를 1:1 수치화하여 엄격하게 추적 관리**하고 있습니다.
 
-$$\text{종합 달성률} = \frac{(\text{완료 89개} \times 1.0) + (\text{부분 지원 12개} \times 0.5)}{\text{총 104개 항목}} \times 100 = \mathbf{91.3\%}$$
+$$\text{종합 달성률} = \frac{(\text{완료 96개} \times 1.0) + (\text{부분 지원 6개} \times 0.5)}{\text{총 104개 항목}} \times 100 = \mathbf{95.2\%}$$
 
 ### 📈 영역별 정량 달성 현황 대시보드
 
-| 대분류 | 세부 영역 (Domain) | 총 항목 수 | 완료 (100%) | 부분 지원 (50%) | 미구현 (0%) | **영역별 달성률** | 추적 상태 |
-| :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **UI** | **1. 윈도우 크롬 & 타이틀바** | 4 | 4 | 0 | 0 | **100.0%** | 정상 완료 |
-| **UI** | **2. 리본 툴바 체계 (Ribbon)** | 6 | 4 | 1 | 1 | **75.0%** | 추적 관리 중 |
-| **UI** | **3. 수식 입력줄 (Formula Bar)** | 5 | 4 | 1 | 0 | **90.0%** | 고도화 진행 |
-| **UI** | **4. 그리드 캔버스 인터랙션** | 12 | 11 | 1 | 0 | **95.8%** | 정상 완료 |
-| **UI** | **5. 다중 시트 탭 바 (Sheets)** | 6 | 5 | 0 | 1 | **83.3%** | 추적 관리 중 |
-| **UI** | **6. 플로팅 다이얼로그 & 오버레이** | 6 | 5 | 1 | 0 | **91.7%** | 정상 완료 |
-| **UI** | **7. 컨텍스트 메뉴 (Context Menus)** | 3 | 3 | 0 | 0 | **100.0%** | 정상 완료 |
-| **UI** | **8. 상태 표시줄 (Status Bar)** | 4 | 3 | 1 | 0 | **87.5%** | 정상 완료 |
-| **기능** | **9. 수식 및 계산 엔진 (Calc)** | 14 | 12 | 2 | 0 | **92.9%** | 50+ 함수 완비 |
-| **기능** | **10. 서식 및 표시 형식 (Format)** | 13 | 12 | 1 | 0 | **96.2%** | 정상 완료 |
-| **기능** | **11. 데이터 정렬 및 분석 (Data)** | 8 | 6 | 2 | 0 | **87.5%** | 추적 관리 중 |
-| **기능** | **12. 차트 및 시각화 (Charts)** | 7 | 5 | 1 | 1 | **78.6%** | 정상 완료 |
-| **기능** | **13. 파일 포맷 무손실 I/O** | 8 | 7 | 1 | 0 | **93.8%** | 정상 완료 |
-| **기능** | **14. 크로스 플랫폼 & VSC 내장** | 8 | 8 | 0 | 0 | **100.0%** | 5대 플랫폼 일치 |
-| **총계** | **UI (46항목) + 기능 (58항목)** | **104개 항목** | **89개** | **12개** | **3개** | **🔥 종합 달성률: 91.3%** | **마일스톤 관리** |
+| 대분류 | 세부 영역 (Domain) | 총 항목 수 | 완료 (100%) | 부분 지원 (50%) | 미구현 (0%) | **영역별 달성률** | 실증 증거 (Visual Proof) |
+| :---: | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+| **UI** | **1. 윈도우 크롬 & 타이틀바** | 4 | 4 | 0 | 0 | **100.0%** | Figure 1, Figure 2 |
+| **UI** | **2. 리본 툴바 체계 (Ribbon)** | 6 | 5 | 0 | 1 | **83.3%** | Figure 1, Figure 12, Figure 14 |
+| **UI** | **3. 수식 입력줄 (Formula Bar)** | 5 | 4 | 1 | 0 | **90.0%** | Figure 1, Figure 13 |
+| **UI** | **4. 그리드 캔버스 인터랙션** | 12 | 12 | 0 | 0 | **100.0%** | Figure 1, Figure 7, Figure 18 |
+| **UI** | **5. 다중 시트 탭 바 (Sheets)** | 6 | 5 | 0 | 1 | **83.3%** | Figure 17 |
+| **UI** | **6. 플로팅 다이얼로그 & 오버레이** | 6 | 6 | 0 | 0 | **100.0%** | Figure 7, Figure 15, Figure 16 |
+| **UI** | **7. 컨텍스트 메뉴 (Context Menus)** | 3 | 3 | 0 | 0 | **100.0%** | Figure 9, Figure 17 |
+| **UI** | **8. 상태 표시줄 (Status Bar)** | 4 | 4 | 0 | 0 | **100.0%** | Figure 18 |
+| **기능** | **9. 수식 및 계산 엔진 (Calc)** | 14 | 12 | 2 | 0 | **92.9%** | Figure 11, Figure 13, Figure 14 |
+| **기능** | **10. 서식 및 표시 형식 (Format)** | 13 | 12 | 1 | 0 | **96.2%** | Figure 1, Figure 18 |
+| **기능** | **11. 데이터 정렬 및 분석 (Data)** | 8 | 7 | 1 | 0 | **93.8%** | Figure 7, Figure 8 |
+| **기능** | **12. 차트 및 시각화 (Charts)** | 7 | 6 | 1 | 0 | **92.9%** | Figure 2, Figure 15 |
+| **기능** | **13. 파일 포맷 무손실 I/O** | 8 | 8 | 0 | 0 | **100.0%** | Figure 3, Figure 4 |
+| **기능** | **14. 크로스 플랫폼 & VSC 내장** | 8 | 8 | 0 | 0 | **100.0%** | Figure 1 ~ Figure 21 전수 일치 |
+| **총계** | **UI (46항목) + 기능 (58항목)** | **104개 항목** | **96개** | **6개** | **2개** | **🔥 종합 달성률: 95.2%** | **21종 실물 캡처 검증 완비** |
 
 > ※ 미구현/부분지원 15개 항목은 `docs/EXCEL_SPECIFICATION.md`의 **[미구현 및 부분지원 항목 추적 관리 대장]**에 등록되어 버전별 로드맵(v1.2, v1.3)으로 체계적 관리 중입니다.
 
