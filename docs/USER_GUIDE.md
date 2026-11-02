@@ -232,3 +232,11 @@ Formulas 탭에서 엑셀 핵심 업무용 함수를 원클릭으로 삽입할 �
 | `Enter` | `Enter` | 수식 입력 커밋 및 아래 셀로 이동 |
 | `Tab` | `Tab` | 수식 입력 커밋 및 우측 셀로 이동 |
 | `Shift + 화살표` | `Shift + 화살표` | 방향키로 사각형 선택 영역 확장 |
+
+---
+
+## 📚 16. 연관 검증 및 기술 문서
+
+- [기술 감사 및 성능·기능 개선 종합 보고서 (docs/AUDIT_AND_IMPROVEMENT_REPORT.md)](AUDIT_AND_IMPROVEMENT_REPORT.md)
+- [기능명세서 및 패리티 매트릭스 (docs/EXCEL_SPECIFICATION.md)](EXCEL_SPECIFICATION.md)
+- [QA 심층 실물 검증 보고서 (docs/QA_PROOF.md)](QA_PROOF.md)

@@ -4,7 +4,24 @@
 > **검증 대상**: OPEN_EXCELL v1.0.0 (VS Code Extension & Native Desktop App)  
 > **운영체제 환경**: macOS (Apple Silicon aarch64 & Intel x86_64), Windows 10/11 (x64 / ARM64)  
 > **검증 원칙**: **"가짜 데이터·목업 전면 배제, 100% 실제 실행 인스턴스 기반 고해상도 실물 캡처(Live Screen Captures) 및 코드 라인 추적"**  
-> **종합 판정**: **전 시나리오 100% 통과 (ALL 21 SCENARIOS PASSED)**
+> **종합 판정**: **전 시나리오 100% 통과 (ALL 21 SCENARIOS PASSED)**  
+> **상세 감사 보고서**: [기술 감사 및 성능·기능 개선 종합 보고서 (docs/AUDIT_AND_IMPROVEMENT_REPORT.md)](AUDIT_AND_IMPROVEMENT_REPORT.md)
+
+---
+
+## 🔍 기술 감사(Audit) 및 개선(Improvement) 조치 핵심 성과 요약
+
+본 QA 검증은 사전 진행된 **기술 감사(Technical Audit)**에서 지적된 7대 핵심 결손을 해결하고, 해당 조치가 완벽히 반영되었는지를 **21종 실물 라이브 캡처**를 통해 1:1로 입증합니다. 상세 분석은 [AUDIT_AND_IMPROVEMENT_REPORT.md](AUDIT_AND_IMPROVEMENT_REPORT.md)에서 확인하실 수 있습니다.
+
+| 감사 지적 결손 (Before) | 기술적 개선 조치 (After) | 검증 실물 증거 (Visual Proof) | 최종 판정 |
+| :--- | :--- | :---: | :---: |
+| **1. 수식 참조 파괴 미처리** | 행/열 삭제 시 `#REF!` 자동 치환 및 사칙연산 에러 전파 | **Fig. 05, Fig. 06** | **PASS (100%)** |
+| **2. 실행 취소(Undo) 부재** | 50단계 Deep Clone 히스토리 스택 (`Cmd+Z`, `Cmd+Y`) | **Fig. 07, Fig. 08** | **PASS (100%)** |
+| **3. OpenXML 메타데이터 유실** | `cellStyles: true` 옵션 및 `!autofilter`, `!rows` 무손실 보존 | **Fig. 02, Fig. 03** | **PASS (100%)** |
+| **4. 우클릭 컨텍스트 타깃팅 오류** | `contextmenu` 이벤트 진입 시 타깃 셀 좌표 자동 동기화 | **Fig. 04, Fig. 09** | **PASS (100%)** |
+| **5. 셀 단위 시프트 삭제 미지원** | `Delete Cells (Shift Up / Shift Left)` 정규 서브메뉴 구현 | **Fig. 09** | **PASS (100%)** |
+| **6. 수식 작성 보조 UI 부재** | 50+ 함수 실시간 자동완성 및 인자별 시그니처 힌트 툴팁 | **Fig. 10, Fig. 11** | **PASS (100%)** |
+| **7. 수식 연쇄 반응 레이턴시** | 2-Pass 위상 정렬 순회 계산 엔진 (`recalculateAll()`) | **Fig. 01, Fig. 06, Fig. 18** | **PASS (100%)** |
 
 ---
 

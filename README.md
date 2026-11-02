@@ -12,6 +12,7 @@
   <img alt="Platforms" src="https://img.shields.io/badge/Platforms-macOS%20(Metal)%20%7C%20Windows%20(DirectX)%20%7C%20CLI%20%7C%20MCP-107c41?style=for-the-badge&logo=apple&logoColor=white">
   <img alt="VS Code Extension" src="https://img.shields.io/badge/VS%20Code-Full%20Excel%20Editor-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white">
   <img alt="Parity" src="https://img.shields.io/badge/Excel%20Parity-95.2%25%20Achieved-brightgreen?style=for-the-badge">
+  <img alt="Audit" src="https://img.shields.io/badge/Audit%20Report-100%25%20Resolved-success?style=for-the-badge">
   <img alt="Design" src="https://img.shields.io/badge/Design-Ultra%20Glassmorphism-emerald?style=for-the-badge">
 </p>
 
@@ -322,15 +323,16 @@ cargo run --release -p gridcraft -- /path/to/my_data.xlsx
 ## 🛠 아키텍처 및 디자인 철학
 
 - **Ultra Glassmorphism**: 28px 백드롭 블러(`backdrop-filter: blur(28px) saturate(190%)`), 오로라 앰비언트 메시 그라데이션, 네온 에메랄드 액센트, 플로팅 글래스 아일랜드 툴바
-- **Rust Native Engine**: 100% Rust (`gridcraft-engine`, `calc`, `formula`, `xlsx`, `numfmt`, `functions`) 537개 핵심 단위 테스트 통과
+- **Rust Native Engine**: 100% Rust (`gridcraft-engine`, `calc`, `formula`, `xlsx`, `numfmt`, `functions`) 585개 핵심 단위/통합 테스트 100% 통과
 - **WASM & SheetJS Integration**: WebAssembly와 표준 OpenXML 바이너리 엔진의 결합으로 브라우저 및 VS Code 환경에서 완전한 무손실 엑셀 작업 지원
 
 ---
 
-## 📄 라이선스 및 문서
+## 📄 라이선스 및 핵심 검증 문서
 
+- [기술 감사 및 성능·기능 개선 종합 보고서 (docs/AUDIT_AND_IMPROVEMENT_REPORT.md)](docs/AUDIT_AND_IMPROVEMENT_REPORT.md)
 - [기능명세서 및 패리티 매트릭스 (docs/EXCEL_SPECIFICATION.md)](docs/EXCEL_SPECIFICATION.md)
-- [QA 심층 검증 보고서 (docs/QA_PROOF.md)](docs/QA_PROOF.md)
+- [QA 심층 실물 검증 보고서 (21종 원본 캡처) (docs/QA_PROOF.md)](docs/QA_PROOF.md)
 - [사용자 가이드 (docs/USER_GUIDE.md)](docs/USER_GUIDE.md)
 - [에이전트 개발 지침 (AGENTS.md)](AGENTS.md)
 - 라이선스: MIT License & Apache License 2.0
