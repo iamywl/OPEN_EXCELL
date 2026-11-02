@@ -88,7 +88,9 @@
       sheets,
       activeSheet,
       activeFilters,
-      isFilterActive
+      isFilterActive,
+      colWidths,
+      rowHeights
     }));
     if (undoStack.length > MAX_HISTORY) undoStack.shift();
     redoStack.length = 0;
@@ -100,13 +102,17 @@
       sheets,
       activeSheet,
       activeFilters,
-      isFilterActive
+      isFilterActive,
+      colWidths,
+      rowHeights
     }));
     const state = JSON.parse(undoStack.pop());
     sheets = state.sheets;
     activeSheet = state.activeSheet;
     activeFilters = state.activeFilters || {};
     isFilterActive = !!state.isFilterActive;
+    colWidths = state.colWidths || {};
+    rowHeights = state.rowHeights || {};
     markDirty(true);
     recalculateFormulas();
     renderSheetTabs();
@@ -119,13 +125,17 @@
       sheets,
       activeSheet,
       activeFilters,
-      isFilterActive
+      isFilterActive,
+      colWidths,
+      rowHeights
     }));
     const state = JSON.parse(redoStack.pop());
     sheets = state.sheets;
     activeSheet = state.activeSheet;
     activeFilters = state.activeFilters || {};
     isFilterActive = !!state.isFilterActive;
+    colWidths = state.colWidths || {};
+    rowHeights = state.rowHeights || {};
     markDirty(true);
     recalculateFormulas();
     renderSheetTabs();
@@ -1224,7 +1234,9 @@
       sheets: sheets,
       csvText: csvContent,
       isFilterActive: isFilterActive,
-      hiddenRows: hiddenRows
+      hiddenRows: hiddenRows,
+      colWidths: colWidths,
+      rowHeights: rowHeights
     });
     markDirty(false);
   }
@@ -1301,6 +1313,7 @@
     const minC = Math.min(selectionRange.startC, selectionRange.endC);
     const maxC = Math.max(selectionRange.startC, selectionRange.endC);
 
+    pushHistory();
     const topLeft = grid[minR][minC];
     if (topLeft.merge) {
       // Unmerge
@@ -1758,6 +1771,7 @@
   theadEl.addEventListener('mousedown', (e) => {
     const resizer = e.target.closest('.col-resizer');
     if (resizer) {
+      pushHistory();
       isResizingCol = true;
       resizeColIndex = parseInt(resizer.getAttribute('data-c'), 10);
       resizeStartX = e.clientX;
@@ -1794,11 +1808,13 @@
     if (isResizingCol) {
       isResizingCol = false;
       resizeColIndex = -1;
+      markDirty(true);
       renderGrid();
     }
     if (isResizingRow) {
       isResizingRow = false;
       resizeRowIndex = -1;
+      markDirty(true);
       renderGrid();
     }
     if (isDraggingFill) {
@@ -1844,6 +1860,7 @@
     // Check if row resizer was clicked
     const rowResizer = e.target.closest('.row-resizer');
     if (rowResizer) {
+      pushHistory();
       isResizingRow = true;
       resizeRowIndex = parseInt(rowResizer.getAttribute('data-r'), 10);
       resizeStartY = e.clientY;
@@ -2229,6 +2246,7 @@
     const finishRename = () => {
       const newName = input.value.trim();
       if (newName && newName !== oldName && !sheets[newName]) {
+        pushHistory();
         sheets[newName] = sheets[oldName];
         delete sheets[oldName];
         if (activeSheet === oldName) activeSheet = newName;
@@ -2265,6 +2283,7 @@
         tab.dispatchEvent(new MouseEvent('dblclick'));
       }
     } else if (action === 'duplicate-sheet') {
+      pushHistory();
       const newName = `${targetContextMenuSheet} (Copy)`;
       sheets[newName] = JSON.parse(JSON.stringify(sheets[targetContextMenuSheet]));
       markDirty(true);
@@ -2274,6 +2293,7 @@
         vscode.postMessage({ type: 'gridcraft:error', text: 'A workbook must contain at least one visible worksheet.' });
         return;
       }
+      pushHistory();
       delete sheets[targetContextMenuSheet];
       const remaining = Object.keys(sheets);
       activeSheet = remaining[0];
@@ -2290,6 +2310,7 @@
   });
 
   btnAddSheet.addEventListener('click', () => {
+    pushHistory();
     const name = `Sheet${Object.keys(sheets).length + 1}`;
     sheets[name] = createInitialGrid(35, 16);
     markDirty(true);
@@ -2326,6 +2347,8 @@
           toolToggleFilter?.classList.remove('active');
         }
         activeFilters = {};
+        colWidths = message.colWidths || {};
+        rowHeights = message.rowHeights || {};
         undoStack.length = 0;
         redoStack.length = 0;
         renderSheetTabs();

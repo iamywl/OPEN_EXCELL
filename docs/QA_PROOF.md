@@ -46,12 +46,18 @@
 | **Fig. 13** | **찾기/바꾸기 (D-03)** | `Ctrl+F` / `Cmd+F` 전역 플로팅 글래스 검색바 및 실시간 매칭 카운터 | `qa_proof_macos_find_replace.png` | **PASS** |
 | **Fig. 14** | **다중 시트 (UI-28)** | 하단 시트 탭 바 관리: 더블클릭 이름 변경 및 우클릭 컨텍스트 메뉴 | `qa_proof_macos_sheet_tabs.png` | **PASS** |
 | **Fig. 15** | **상태바 통계 (UI-43)** | 다중 셀 사각형 드래그 선택 및 상태바 실시간 통계 (Count, Sum, Avg, Min, Max) | `qa_proof_macos_status_stats.png` | **PASS** |
-| **Fig. 16** | **네이티브 엔진** | 분기별 영업 대시보드 (복합 차트, 조건부 서식 막대, 스파크라인) | `qa_proof_native.png` | **PASS** |
-| **Fig. 17** | **네이티브 가계부** | 월별 가계부 및 예산 집계 (통화 서식 및 계정별 소계) | `qa_proof_budget.png` | **PASS** |
-| **Fig. 18** | **네이티브 학점통계** | 학생 성적표 및 GPA 통계 분석 대시보드 | `qa_proof_grades.png` | **PASS** |
-| **Fig. 19** | **한글 유니코드** | 한글 품목명 및 한글 조건문 수식(`=IF(...)`) 실시간 연산 렌더링 | `qa_proof_korean.png` | **PASS** |
-| **Fig. 20** | **XLSX 라운드트립** | CLI 생성 수식 엑셀 파일(`test_output.xlsx`) 무손실 로드 및 렌더링 | `qa_proof_custom_file.png` | **PASS** |
-| **Fig. 21** | **다크 모드** | Slate-900 딥 다크 네온 에메랄드 글래스모피즘 테마 렌더링 | `qa_proof_dark_mode.png` | **PASS** |
+| **Fig. 16** | **셀 서식 (S-01~S-11)**| 글꼴 패밀리/크기, 굵게/기울임, 네온 글꼴색/배경색, 테두리(Borders) | `qa_proof_macos_formatting_styles.png` | **PASS** |
+| **Fig. 17** | **셀 병합 (S-10, UI-22)**| 배너 헤더 셀 병합 및 가운데 맞춤(`Merge & Center`), 스타일 결합 | `qa_proof_macos_cell_merge.png` | **PASS** |
+| **Fig. 18** | **자동 채우기 (UI-21)**| 셀 우하단 녹색 핸들(`fill-handle`) 드래그 수치 자동 증감 연산 | `qa_proof_macos_autofill_drag.png` | **PASS** |
+| **Fig. 19** | **행/열 크기 (UI-19)** | 마우스 인터랙티브 열 너비(A열 확장) 및 행 높이(1행 확장) 조절 | `qa_proof_macos_header_resize.png` | **PASS** |
+| **Fig. 20** | **데이터 정렬 (D-01)** | 단가(Unit Price) 기준 오름차순 정렬 (`Sort A→Z`) 및 전체 행 연동 | `qa_proof_macos_data_sorting.png` | **PASS** |
+| **Fig. 21** | **시트 생명주기 (UI-29)**| 시트 추가(`+`), 탭 복제(`duplicate-sheet`), 탭 간 전환 라이프사이클 | `qa_proof_macos_sheet_lifecycle.png` | **PASS** |
+| **Fig. 22** | **네이티브 엔진** | 분기별 영업 대시보드 (복합 차트, 조건부 서식 막대, 스파크라인) | `qa_proof_native.png` | **PASS** |
+| **Fig. 23** | **네이티브 가계부** | 월별 가계부 및 예산 집계 (통화 서식 및 계정별 소계) | `qa_proof_budget.png` | **PASS** |
+| **Fig. 24** | **네이티브 학점통계** | 학생 성적표 및 GPA 통계 분석 대시보드 | `qa_proof_grades.png` | **PASS** |
+| **Fig. 25** | **한글 유니코드** | 한글 품목명 및 한글 조건문 수식(`=IF(...)`) 실시간 연산 렌더링 | `qa_proof_korean.png` | **PASS** |
+| **Fig. 26** | **XLSX 라운드트립** | CLI 생성 수식 엑셀 파일(`test_output.xlsx`) 무손실 로드 및 렌더링 | `qa_proof_custom_file.png` | **PASS** |
+| **Fig. 27** | **다크 모드** | Slate-900 딥 다크 네온 에메랄드 글래스모피즘 테마 렌더링 | `qa_proof_dark_mode.png` | **PASS** |
 
 ---
 
@@ -191,29 +197,87 @@ Category 열 헤더의 `▾` 버튼을 클릭했을 때 호출되는 프로스�
 
 GridCraft Rust 네이티브 그래픽 파이프라인(`gridcraft-ui-egui`)을 통해 고해상도(2880x1800) 오프스크린 스냅샷으로 렌더링한 실제 결과물입니다.
 
-### 3.1 [Fig. 16] 분기별 영업 대시보드 (Quarterly Sales Dashboard)
+### 2.16 [Fig. 16] 셀 서식 및 스타일링 (Font Family, Size, Bold/Italic, Color, Fill, Borders)
+`A2:E2` 셀 범위를 선택하고 글꼴(Arial 14px), 굵게, 기울임, 배경색(딥 에메랄드 `#064e3b`), 글꼴색(네온 그린 `#34d399`), 모든 테두리(Borders: All)를 일괄 적용한 화면입니다.
+- **사전 조건**: 데이터 행 선택 후 서식 툴바 조작.
+- **기대 결과**: 선택된 모든 셀의 인라인 스타일과 데이터 모델에 즉각 반영되고 테두리가 선명하게 렌더링되어야 함.
+- **실제 결과**: 백드롭 블러 그리드 위에서 글꼴색, 채우기색, 테두리가 오차 없이 렌더링됨.
+![Fig 16: macOS Formatting Styles](images/qa_proof_macos_formatting_styles.png)
+
+---
+
+### 2.17 [Fig. 17] 셀 병합 및 가운데 맞춤 (Merge & Center Across Columns)
+`A8:D8` 4개 열 범위를 선택하고 리본의 `Merge & Center`를 클릭하여 일괄 결합된 배너 셀을 생성한 화면입니다.
+- **사전 조건**: `A8`에 요약 텍스트 입력 후 `A8:D8` 선택.
+- **기대 결과**: `rowspan=1, colspan=4`로 그리드 셀이 병합되고 텍스트가 가운데 정렬되며, OpenXML `!merges` 속성에 자동 직렬화되어야 함.
+- **실제 결과**: 병합된 영역이 단일 글래스 아일랜드로 매끄럽게 렌더링됨.
+![Fig 17: macOS Cell Merge](images/qa_proof_macos_cell_merge.png)
+
+---
+
+### 2.18 [Fig. 18] 셀 우하단 자동 채우기 드래그 핸들 (Auto-Fill Incremental Drag)
+수치 셀의 우하단 녹색 사각형 핸들(`fill-handle`)을 마우스로 잡고 아래로 드래그하여 수치를 1씩 자동 증감 연산 채우기한 화면입니다.
+- **사전 조건**: 숫자 셀 선택 후 우하단 핸들 마우스 드래그 다운.
+- **기대 결과**: 엑셀 표준 자동 채우기 알고리즘에 따라 연속된 숫자가 생성되고 수식 의존성이 즉시 갱신되어야 함.
+- **실제 결과**: 100부터 시작하여 하단 셀들로 정확한 수치 자동 증가 채우기 완료.
+![Fig 18: macOS Auto-Fill Drag](images/qa_proof_macos_autofill_drag.png)
+
+---
+
+### 2.19 [Fig. 19] 인터랙티브 컬럼 너비 & 행 높이 마우스 드래그 리사이징 (Header Resizing)
+A열 헤더 경계선을 드래그하여 폭을 대폭 확장하고, 1행 헤더 경계선을 드래그하여 높이를 확장한 화면입니다.
+- **사전 조건**: 열/행 리사이저 핸들 마우스 드래그.
+- **기대 결과**: 마우스 이동 거리에 비례하여 컬럼 폭과 행 높이가 실시간 조절되고, 변경된 치수가 모델 및 OpenXML `!cols`, `!rows`에 저장되어야 함.
+- **실제 결과**: A열 폭이 220px로 확장되고 헤더 행 높이가 시각적으로 여유 있게 확장 완료.
+![Fig 19: macOS Header Resize](images/qa_proof_macos_header_resize.png)
+
+---
+
+### 2.20 [Fig. 20] 데이터 정렬 (Data Sorting: Sort A→Z / Unit Price Ascending)
+단가(Unit Price) 열을 기준으로 Data 탭의 `Sort A→Z`를 실행하여 전체 행을 단가 오름차순으로 동기화 정렬한 화면입니다.
+- **사전 조건**: Unit Price 열 셀 선택 후 `tool-sort-asc` 클릭.
+- **기대 결과**: 당근(800원) → 브로콜리(1,200원) → 사과(1,500원) 순으로 헤더를 제외한 전체 데이터 행이 오름차순 재정렬되어야 함.
+- **실제 결과**: 전 행의 품목, 수량, 합계가 단가 정렬 순서에 맞추어 완벽 동기화 정렬됨.
+![Fig 20: macOS Data Sorting](images/qa_proof_macos_data_sorting.png)
+
+---
+
+### 2.21 [Fig. 21] 다중 시트 생명주기 (Add Sheet, Duplicate Sheet, Tab Switching)
+`+` 버튼으로 새 시트를 추가하고, 기존 시트를 우클릭하여 `Duplicate Sheet`로 `Inventory (Copy)` 복제본을 생성한 후 탭 간 원클릭 전환한 화면입니다.
+- **사전 조건**: 시트 탭 바에서 `+` 클릭 및 우클릭 복제 실행.
+- **기대 결과**: 시트 데이터가 딥 클론되어 복제되고 하단 탭 바에 실시간 반영되어야 함.
+- **실제 결과**: 다중 시트 탭이 생성되고 탭 클릭 시 해당 시트 그리드로 즉각 스위칭됨.
+![Fig 21: macOS Sheet Lifecycle](images/qa_proof_macos_sheet_lifecycle.png)
+
+---
+
+## 🖥️ 3. 크로스 플랫폼 네이티브 데스크톱 앱 고해상도 실물 캡처 갤러리 (6종)
+
+GridCraft Rust 네이티브 그래픽 파이프라인(`gridcraft-ui-egui`)을 통해 고해상도(2880x1800) 오프스크린 스냅샷으로 렌더링한 실제 결과물입니다.
+
+### 3.1 [Fig. 22] 분기별 영업 대시보드 (Quarterly Sales Dashboard)
 복합 클러스터 컬럼 차트, 파이 차트, 조건부 서식(데이터 막대 및 화살표 아이콘), 스파크라인이 집약된 종합 대시보드 렌더링 화면:
-![Fig 16: Sales Dashboard](images/qa_proof_native.png)
+![Fig 22: Sales Dashboard](images/qa_proof_native.png)
 
-### 3.2 [Fig. 17] 월별 가계부 및 예산 집계 (Monthly Budget)
+### 3.2 [Fig. 23] 월별 가계부 및 예산 집계 (Monthly Budget)
 통화 서식(Currency ₩/$), 계정별 다차원 집계, 지출 비중 분석 시트 렌더링 화면:
-![Fig 17: Monthly Budget](images/qa_proof_budget.png)
+![Fig 23: Monthly Budget](images/qa_proof_budget.png)
 
-### 3.3 [Fig. 18] 학생 성적표 및 GPA 통계 분석 (Gradebook)
+### 3.3 [Fig. 24] 학생 성적표 및 GPA 통계 분석 (Gradebook)
 고급 통계 수식(`AVERAGE`, `COUNT`, `MAX`, `MIN`), 학점 분포 및 차트 분석 렌더링 화면:
-![Fig 18: Grades and Statistics](images/qa_proof_grades.png)
+![Fig 24: Grades and Statistics](images/qa_proof_grades.png)
 
-### 3.4 [Fig. 19] 한글(Korean) 유니코드 완성형 및 수식 연산 (`korean_test.xlsx`)
+### 3.4 [Fig. 25] 한글(Korean) 유니코드 완성형 및 수식 연산 (`korean_test.xlsx`)
 한글 품목명("프리미엄 사과", "제주 감귤"), 한글 조건문 수식(`=IF(D2>=100000, "우수품목", "일반")`), 총합계(`330,000원`)가 오차 없이 계산되어 렌더링된 화면 (글자 깨짐 0건):
-![Fig 19: Korean Unicode Support](images/qa_proof_korean.png)
+![Fig 25: Korean Unicode Support](images/qa_proof_korean.png)
 
-### 3.5 [Fig. 20] CLI 생성 엑셀 파일 무손실 라운드트립 (`test_output.xlsx`)
+### 3.5 [Fig. 26] CLI 생성 엑셀 파일 무손실 라운드트립 (`test_output.xlsx`)
 `gridcraft-cli run` 명령으로 실시간 생성한 수식(`=SUM(B2:B3) = 4,000`) 엑셀 파일을 네이티브 앱이 직접 읽고 무손실 렌더링한 화면:
-![Fig 20: Custom File Roundtrip](images/qa_proof_custom_file.png)
+![Fig 26: Custom File Roundtrip](images/qa_proof_custom_file.png)
 
-### 3.6 [Fig. 21] Slate-900 딥 다크 모드 렌더링 (Dark Mode)
+### 3.6 [Fig. 27] Slate-900 딥 다크 모드 렌더링 (Dark Mode)
 야간 작업 시 눈의 피로를 최소화하는 딥 다크 캔버스와 고대비 네온 에메랄드 그리드라인 렌더링 화면:
-![Fig 21: Dark Mode Sales](images/qa_proof_dark_mode.png)
+![Fig 27: Dark Mode Sales](images/qa_proof_dark_mode.png)
 
 ---
 

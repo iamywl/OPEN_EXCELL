@@ -172,12 +172,30 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
             sheetsData[sheetName] = grid;
           }
 
+          const firstSheet = wb.Sheets[wb.SheetNames[0]];
+          const colWidths: Record<number, number> = {};
+          if (firstSheet && firstSheet['!cols']) {
+            firstSheet['!cols'].forEach((col: any, idx: number) => {
+              if (col && col.wpx) colWidths[idx] = col.wpx;
+              else if (col && col.wch) colWidths[idx] = Math.round(col.wch * 8.5);
+            });
+          }
+          const rowHeights: Record<number, number> = {};
+          if (firstSheet && firstSheet['!rows']) {
+            firstSheet['!rows'].forEach((row: any, idx: number) => {
+              if (row && row.hpx) rowHeights[idx] = row.hpx;
+              else if (row && row.hpt) rowHeights[idx] = Math.round(row.hpt * 1.33);
+            });
+          }
+
           webviewPanel.webview.postMessage({
             type: 'gridcraft:openWorkbook',
             filename,
             sheets: sheetsData,
             sheetNames: wb.SheetNames,
             hasFilter: wb.SheetNames.some(s => !!wb.Sheets[s]['!autofilter']),
+            colWidths,
+            rowHeights,
           });
         }
       } catch (err: any) {
@@ -266,6 +284,23 @@ export class ExcelEditorProvider implements vscode.CustomEditorProvider<ExcelDoc
                   message.hiddenRows.forEach((r: number) => {
                     rowsMeta[r] = { hidden: true };
                   });
+                  ws['!rows'] = rowsMeta;
+                }
+
+                if (message.colWidths && Object.keys(message.colWidths).length > 0) {
+                  const colsMeta: any[] = [];
+                  for (const [colIdx, w] of Object.entries(message.colWidths)) {
+                    colsMeta[parseInt(colIdx, 10)] = { wpx: Number(w) };
+                  }
+                  ws['!cols'] = colsMeta;
+                }
+
+                if (message.rowHeights && Object.keys(message.rowHeights).length > 0) {
+                  const rowsMeta: any[] = ws['!rows'] || [];
+                  for (const [rowIdx, h] of Object.entries(message.rowHeights)) {
+                    const rIdx = parseInt(rowIdx, 10);
+                    rowsMeta[rIdx] = { ...(rowsMeta[rIdx] || {}), hpx: Number(h) };
+                  }
                   ws['!rows'] = rowsMeta;
                 }
 
