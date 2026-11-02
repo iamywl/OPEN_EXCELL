@@ -67,10 +67,12 @@ flowchart TD
    - 1줄짜리 placeholder 방지 및 허위 기재 없는 정량적 패리티 지표 갱신.
 2. **[Phase 2: Implementation & Engineering Gate]** *(전담: Core & Webview Engineer)*
    - `extension/web/grid.js`, `grid.css`, `editorProvider.ts` 및 Rust engine 구현.
-   - Ultra Glassmorphism 테마(28px 블러, 네온 에메랄드) 및 WCAG AA 가독성 준수.
+   - Ultra Glassmorphism 테마(28px 블러, 정제된 8px 에메랄드 미세 액센트) 및 WCAG AA 가독성(4.5:1 이상) 준수.
+   - **모달 에르고노믹스 및 안구 피로 방지**: 플로팅 모달/팝업/컨텍스트 메뉴에 고밀도 프로스티드 글래스(94%+ 불투명도) 적용으로 뒷배경 셀 비침(Ghosting) 원천 차단.
+   - 캔버스 차트 동적 테마 연동(다크모드 고대비 텍스트) 및 하드코딩 컬러 금지.
    - 모든 조작 즉시 `pushHistory()` (Undo/Redo) 및 OpenXML `!cols`, `!rows`, `!merges` 바이너리 직렬화 보장.
 3. **[Phase 3: Independent QA & Proof of Capture Gate]** *(전담: Zero-Defect QA Auditor)*
-   - 개발 코드 독립 감사: 껍데기 UI 및 더미 함수 적발 시 반려.
+   - 개발 코드 독립 감사: 껍데기 UI, 더미 함수, 모달 가독성 결함(다크모드 명도 대비 미달, 배경 비침, 눈부심) 적발 시 즉시 반려.
    - Puppeteer E2E 자동화 스크립트 실행 및 실물 스크린샷 캡처(Fig 1 ~ Fig 27+).
    - `docs/QA_PROOF.md` 및 `docs/AUDIT_AND_IMPROVEMENT_REPORT.md` 실시간 업데이트.
 4. **[Phase 4: Packaging & OS Delivery Gate]** *(전담: Packaging & OS Specialist)*

@@ -20,9 +20,13 @@
   --text-muted: #64748b;
   --text-subtle: #94a3b8;
   
+  --glass-modal-bg: rgba(255, 255, 255, 0.94);
+  --glass-modal-border: rgba(203, 213, 225, 0.85);
+  --context-hover-text: #047857;
+
   --emerald-glass: rgba(16, 185, 129, 0.85);
   --emerald-glass-hover: rgba(16, 185, 129, 1);
-  --emerald-glass-glow: 0 0 16px rgba(16, 185, 129, 0.35);
+  --emerald-glass-glow: 0 0 8px rgba(16, 185, 129, 0.25);
   --emerald-pill-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.9));
   
   --grid-border: #cbd5e1;
@@ -55,9 +59,13 @@
     --text-muted: #94a3b8;
     --text-subtle: #64748b;
     
+    --glass-modal-bg: rgba(15, 23, 42, 0.95);
+    --glass-modal-border: rgba(255, 255, 255, 0.18);
+    --context-hover-text: #34d399;
+
     --emerald-glass: rgba(16, 185, 129, 0.9);
     --emerald-glass-hover: rgba(52, 211, 153, 1);
-    --emerald-glass-glow: 0 0 20px rgba(16, 185, 129, 0.45);
+    --emerald-glass-glow: 0 0 8px rgba(16, 185, 129, 0.25);
     --emerald-pill-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.85), rgba(5, 150, 105, 0.85));
     
     --grid-border: #334155;
@@ -403,13 +411,13 @@ body.gridcraft-root {
   position: absolute;
   bottom: 20px;
   right: 20px;
-  background: var(--glass-base);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--glass-border);
+  background: var(--glass-modal-bg);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid var(--glass-modal-border);
   border-radius: 12px;
-  box-shadow: var(--glass-shadow-lg);
-  padding: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22), var(--glass-shadow-lg);
+  padding: 14px;
   z-index: 50;
   transition: opacity 0.2s ease;
 }
@@ -425,6 +433,7 @@ body.gridcraft-root {
   margin-bottom: 8px;
   font-weight: 700;
   font-size: 12px;
+  color: var(--text-main);
 }
 
 .chart-close {
@@ -438,14 +447,14 @@ body.gridcraft-root {
 /* Context Menu */
 .context-menu {
   position: fixed;
-  background: var(--glass-base);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--glass-border);
+  background: var(--glass-modal-bg);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid var(--glass-modal-border);
   border-radius: 8px;
-  box-shadow: var(--glass-shadow-lg);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.20), var(--glass-shadow-lg);
   padding: 4px 0;
-  min-width: 160px;
+  min-width: 170px;
   z-index: 100;
 }
 
@@ -458,12 +467,12 @@ body.gridcraft-root {
   font-size: 12px;
   cursor: pointer;
   color: var(--text-main);
-  transition: background 0.12s ease;
+  transition: background 0.12s ease, color 0.12s ease;
 }
 
 .context-item:hover {
   background: var(--selection-bg);
-  color: var(--selection-border);
+  color: var(--context-hover-text);
   font-weight: 600;
 }
 
@@ -830,15 +839,15 @@ body.gridcraft-root {
 /* AutoFilter Dropdown Popup */
 .filter-dropdown-menu {
   position: fixed;
-  background: var(--glass-base);
+  background: var(--glass-modal-bg);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--glass-modal-border);
   border-radius: 10px;
-  box-shadow: var(--glass-shadow-lg);
-  padding: 10px;
-  min-width: 200px;
-  max-width: 260px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25), var(--glass-shadow-lg);
+  padding: 12px;
+  min-width: 220px;
+  max-width: 280px;
   z-index: 150;
   display: flex;
   flex-direction: column;
@@ -865,18 +874,19 @@ body.gridcraft-root {
   border: 1px solid var(--glass-border-subtle);
   border-radius: 6px;
   padding: 4px;
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--glass-card);
 }
 
 .filter-item-label {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 6px;
+  padding: 4px 6px;
   font-size: 11px;
   color: var(--text-main);
   cursor: pointer;
   border-radius: 4px;
+  transition: background 0.12s ease;
 }
 
 .filter-item-label:hover {
@@ -895,7 +905,14 @@ body.gridcraft-root {
   font-weight: 600;
   border-radius: 6px;
   cursor: pointer;
+  background: var(--glass-card);
+  color: var(--text-main);
   border: 1px solid var(--glass-border);
+  transition: all 0.15s ease;
+}
+
+.filter-action-btn:hover {
+  background: var(--glass-card-hover);
 }
 
 .filter-action-btn.apply {
@@ -914,12 +931,12 @@ body.gridcraft-root {
   position: absolute;
   top: 10px;
   right: 20px;
-  background: var(--glass-base);
+  background: var(--glass-modal-bg);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--glass-modal-border);
   border-radius: 10px;
-  box-shadow: var(--glass-shadow-lg);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.20), var(--glass-shadow-lg);
   padding: 8px 12px;
   z-index: 120;
   display: flex;

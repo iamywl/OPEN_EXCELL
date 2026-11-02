@@ -1401,6 +1401,11 @@
     const ctx = chartCanvas.getContext('2d');
     ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
 
+    const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const textColor = isDarkMode ? '#f8fafc' : '#0f172a';
+    const textMuted = isDarkMode ? '#94a3b8' : '#64748b';
+    const gridLineColor = isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)';
+
     const grid = sheets[activeSheet];
     const data = [];
     const labels = [];
@@ -1417,16 +1422,26 @@
       const maxVal = Math.max(...data, 1);
       const barWidth = 36;
       const startX = 50;
+
+      // Draw horizontal baseline
+      ctx.strokeStyle = gridLineColor;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(startX - 10, 220);
+      ctx.lineTo(startX + data.length * 50, 220);
+      ctx.stroke();
+
       data.forEach((val, i) => {
         const h = (val / maxVal) * 160;
         const x = startX + i * 50;
         const y = 220 - h;
         ctx.fillStyle = '#10b981';
         ctx.fillRect(x, y, barWidth, h);
-        ctx.fillStyle = '#334155';
-        ctx.font = '10px sans-serif';
-        ctx.fillText(labels[i].substring(0, 5), x, 240);
-        ctx.fillText(String(val), x, y - 5);
+        ctx.fillStyle = textColor;
+        ctx.font = '600 11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.fillText(labels[i].substring(0, 6), x, 240);
+        ctx.fillStyle = textMuted;
+        ctx.fillText(String(val), x, y - 6);
       });
     } else if (type === 'pie') {
       const total = data.reduce((a, b) => a + b, 0) || 1;
