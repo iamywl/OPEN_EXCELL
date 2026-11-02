@@ -45,8 +45,30 @@
    - 글래스모피즘(Ultra Glassmorphism) 테마는 가독성, 명도 대비(WCAG AA 4.5:1), 백드롭 블러(28px) 및 네온 에메랄드 액센트가 전 컴포넌트에 일관되게 적용되어야 한다.
 3. **[QA 미포함 기능 전수 발굴 및 100% 라이브 검증]**:
    - 명세서에 있는 기능 중 기존 QA 스위트에서 누락되었거나 직접 테스트되지 않은 기능(셀 서식 변경, 글꼴 크기/색상, 테두리 적용, 정렬, 셀 병합/해제, 숫자 서식 드롭다운, 컬럼/행 리사이징, 다중 시트 복제/삭제 등)을 전수 발굴하여 테스트 시나리오로 편입하고 자동화 E2E 스크립트 및 실물 캡처로 100% 검증한다.
-4. **[로컬 시스템 빌드 & 설치 완료 원칙]**:
-   - 검증 완료 후 사용자의 로컬 환경(맥북: Apple Silicon macOS)에 VS Code 익스텐션(`code --install-extension`) 및 네이티브 독립 데스크톱 앱 바이너리(`cargo build --release -p gridcraft`)를 실제로 빌드하여 시스템에 설치/배포하고 동작을 확인한다.
+4. **[로컬 시스템 정식 앱 번들링 및 Launchpad/Spotlight 통합 필수 원칙]**:
+   - **단순 터미널 바이너리 배포 절대 금지**: `cargo build` 후 `~/.cargo/bin`에 바이너리 파일만 복사하고 설치를 마치는 것은 엄격히 금지된다. 일반 사용자는 Finder, Launchpad, Spotlight를 통해 GUI 앱을 탐색하고 실행하므로, 반드시 정식 macOS Application Bundle (`/Applications/OPEN_EXCELL.app`, `/Applications/GridCraft.app`)로 패키징해야 한다.
+   - **필수 번들 규격 구축**:
+     - `Contents/MacOS/<Executable>` (실행 권한 `chmod +x` 부여된 네이티브 바이너리)
+     - `Contents/Info.plist` (앱 이름, 카테고리, 문서 확장자 `.xlsx`, `.csv` 연결 정의)
+     - `Contents/PkgInfo` (`APPL????` 매직 시그니처)
+     - `Contents/Resources/AppIcon.icns` (512x512 고해상도 아이콘 번들)
+   - **고유 CFBundleIdentifier 준수**: 복수의 앱 배포 시 번들 식별자(Bundle ID)는 절대 중복되어서는 안 된다 (예: `ai.storyteller.openexcell`, `ai.storyteller.gridcraft`). 번들 ID가 중복되면 macOS Launchpad SQLite DB에서 충돌이 발생하여 앱이 비활성 고아 그룹(orphan group)으로 숨겨져 런치패드에서 보이지 않는 치명적 결함이 발생한다.
+   - **시스템 등록 및 캐시 갱신 파이프라인 자동화**:
+     1) `codesign --force --deep --sign - /Applications/<AppName>.app` (로컬 ad-hoc 코드 서명)
+     2) `/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f /Applications/<AppName>.app` (LaunchServices 강제 재등록)
+     3) `mdimport /Applications/<AppName>.app` (Spotlight 메타데이터 인덱싱)
+     4) `killall Dock` (Launchpad SQLite 캐시 및 독 프로세스 리로드)
+   - **사용자 위치 및 실행 안내 필수화**: macOS Launchpad 첫 페이지가 35개 기본 앱으로 꽉 차 있는 경우 신규 앱은 2번째 페이지(또는 마지막 페이지)에 등록된다. 사용자에게 단순 "설치 완료"만 전달하지 말고, 1) 런치패드 2번째 페이지 위치, 2) 상단 검색창 검색법, 3) Spotlight (`Cmd + Space`), 4) Finder 응용 프로그램 폴더, 5) 터미널 `open /Applications/<AppName>.app` 실행법을 종합 안내한다.
+
+5. **[Undo/Redo 스택 & 바이너리 무손실 I/O 누락 방지]**:
+   - 화면상에서 동작하는 모든 UI 인터랙션(셀 서식, 글꼴/배경색, 테두리, 셀 병합/해제, 행 높이/열 너비 리사이징, 다중 시트 생성/삭제/복제/이름변경)은 조작 즉시 `pushHistory()`를 호출하여 Undo/Redo 스택에 완전한 상태가 저장되어야 한다.
+   - 열 너비(`!cols`) 및 행 높이(`!rows`), 병합 범위(`!merges`)는 바이너리 저장 시 누락 없이 OpenXML 표준 규격으로 직렬화되어야 하며, 재오픈 시 1px의 오차도 없이 복원되어야 한다.
+
+6. **[백그라운드 프로세스 및 좀비 태스크 정리 원칙]**:
+   - GUI 애플리케이션 및 백그라운드 커맨드는 실행 후 방치되어 백그라운드 태스크나 포트를 점유해서는 안 된다. 테스트 및 스크린샷 캡처 후에는 즉시 정상 종료시키거나 `manage_task(Action='kill')`로 정리하여 클린 상태를 유지한다.
+
+7. **[전수 문서화 및 증명 스냅샷 실시간 동기화 원칙]**:
+   - `README.md`, `docs/EXCEL_SPECIFICATION.md`, `docs/QA_PROOF.md`, `docs/AUDIT_AND_IMPROVEMENT_REPORT.md` 4대 문서의 패리티 수치, 감사 내용, 라이브 증명 스크린샷 매핑(Fig. 1 ~ Fig. 27)은 실시간으로 100% 일치해야 하며, 캡처 파일은 반드시 디스크에 실존하는 비어있지 않은 PNG 파일이어야 한다.
 
 ---
 
@@ -60,8 +82,9 @@
    - 크로스 플랫폼 파일 입출력 및 인코딩/경로 호환성 보장.
 3. **[Testing & Build Loop]**:
    - Rust crates 585개 핵심 단위/통합 테스트 100% 통과.
-   - VS Code Extension 빌드 및 VSIX 패키징 (`open-excell-1.0.0.vsix`) 완료 및 VS Code 실제 설치 검증 (`code --install-extension`).
-   - 사용자 macOS 로컬 시스템에 네이티브 바이너리 빌드 및 설치 (`cargo build --release -p gridcraft`).
+   - VS Code Extension 빌드 및 VSIX 패키징 (`open-excell-1.0.0.vsix`) 완료 및 VS Code 실제 설치 검증 (`code --install-extension open-excell-1.0.0.vsix --force`).
+   - 사용자 macOS 로컬 시스템에 정식 네이티브 `.app` 번들 생성 및 `/Applications` 배포 (`/Applications/OPEN_EXCELL.app`, `/Applications/GridCraft.app`), `codesign`, `lsregister`, `killall Dock`을 통한 Launchpad/Spotlight 등록 및 실행 검증.
+   - 백그라운드 테스트 및 데몬 프로세스 종료 및 좀비 태스크 정리 확인.
 4. **[Proof of QA & Capture Loop]**:
    - 모든 구현 기능에 대해 결손 없이 라이브 스크린샷 캡처 및 E2E 테스트 통과 증명.
    - 오프스크린/스냅샷 렌더링 스냅샷 증명.
