@@ -46,11 +46,9 @@ impl SheetApp {
         }
     }
 
-    /// Look for a newer release once, in the background, as the desktop app starts (a no-op on the
-    /// web). A found release opens the update prompt; nothing is shown when GridCraft is current.
+    /// Look for a newer release once, in the background, as the desktop app starts (disabled per user request: no update notifications).
     pub fn start_update_check(&mut self) {
-        #[cfg(not(target_arch = "wasm32"))]
-        updates_ui::start(self, false);
+        // Disabled: do not notify or check for updates automatically at startup.
     }
 
     /// Help ▸ Check for Updates…: look now, and say so when GridCraft is up to date or the check fails.

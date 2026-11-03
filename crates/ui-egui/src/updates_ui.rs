@@ -3,7 +3,7 @@
 //! itself is `craft_update::updater::Updater`.
 
 use craft_update::suite::GRIDCRAFT;
-use craft_update::updater::{Action, Status, Updater};
+use craft_update::updater::{Status, Updater};
 
 use crate::SheetApp;
 
@@ -52,18 +52,6 @@ pub(crate) fn tick(app: &mut SheetApp, ctx: &egui::Context) {
     }
 }
 
-pub(crate) fn show(app: &mut SheetApp, ctx: &egui::Context) {
-    // The restart helper is scheduled before the app closes, so no update starts over unsaved work.
-    let clean = !app.session.documents().iter().any(|d| d.is_dirty());
-    match app.updates_rt.updater.show_if(ctx, clean) {
-        Action::OpenUrl(url) => {
-            if let Some(open) = &app.services.open_url {
-                open(&url);
-            }
-        }
-        // The guarded close path asks about unsaved work; the restart helper relaunches once the
-        // process has exited.
-        Action::Close => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
-        Action::None => {}
-    }
+pub(crate) fn show(_app: &mut SheetApp, _ctx: &egui::Context) {
+    // Disabled per user request: never display update prompts or notification modals.
 }
